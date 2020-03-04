@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/font-awesome.min.css" rel="stylesheet">
+    <link href="./css/animate.min.css" rel="stylesheet"> 
+    <link href="./css/reset.css" rel="stylesheet">  
+    <link href="./css/style.css" rel="stylesheet">  
+    <link href="./css/bui.css" rel="stylesheet">  
+    <style type="text/css">
+       body,html ,#app{
+           width: 100%;
+       }
+       .login-wrap .form-wrap .form-list .list .icon-phone-code{
+           position: relative;
+           display: flex;
+           align-items: center;
+       }
+       .u-select{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+        }
+        .icon-down{
+            content: "";
+            width: 0;
+            height: 0;
+            border-width: 10px;
+            border-style: solid;
+            border-color: transparent;
+            border-top-color: #777;
+            margin-top: 10px;
+            margin-left: 5px;
+        }
+    </style>
+</head> 
+
+<body>
+    <div id="app" v-cloak>
+        <!-- 页面 -->
+        <div class="container-fuid login-wrap">
+            <div class="row hidden-xs " style="height:100%">
+                <div class="col-sm-4 form-wrap form-wrap-sm">
+                    <img src="./images/logo.svg" class="logo">
+                    <div class="form-list">
+                        <div class="list">
+                            <span class="icon icon-phone-code">
+                                <span>+{{country_code}}</span><i class="icon-down"></i>
+                                <i class="u-select js_select" id="select"></i>
+                            </span>
+                            <input type="number" placeholder="手机号" v-model="phone">
+                        </div>
+                        <div class="list">
+                            <input type="text" placeholder="验证码" v-model="verify_code">
+                            <span class="icon-code" @click="getCode()">{{code_text}}</span>
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="新密码" v-model="password">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="确认密码" v-model="repassword">
+                        </div>
+                        <div class="flex btn-to">
+                            <a href="./login.html">若想起密码，请登录</a>
+                        </div>
+                        <div class="btn-login" @click="commit()">确认</div>
+                    </div>
+                </div>
+                <div class="col-sm-8 login-bg"></div>
+            </div>
+            <div class="visible-xs " style="height:100%">
+                <div class="">
+                    <img src="./images/login-bg.png" class="login-bg-xs" style="height:200px;width: 100%;">
+                </div>
+                <div class="form-wrap form-wrap-xs">
+                    <div class="txt-ct logo-wrap"><img src="./images/logo.svg" class="logo"></div>
+                    <div class="form-list"  style="margin-top:20px">
+                        <div class="list">
+                            <span class="icon icon-phone-code">
+                                <span>+{{country_code}}</span><i class="icon-down"></i>
+                                <i class="u-select js_select" id="select"></i>
+                            </span>
+                            <input type="number" placeholder="手机号" v-model="phone">
+                        </div>
+                        <div class="list">
+                            <input type="text" placeholder="验证码" v-model="verify_code">
+                            <span class="icon-code" @click="getCode()">{{code_text}}</span>
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="新密码" v-model="password">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="确认密码" v-model="repassword">
+                        </div>
+                        <div class="flex btn-to">
+                            <a href="./login.html">若想起密码，请登录</a>
+                        </div>
+                        <div class="btn-login" @click="commit()">确认</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/bootstrap.min.js"></script> 
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+    window.onload = function(){
+        init()
+    }
+    function init(){
+        var _vue = new Vue({
+                el: '#app',
+                data: {
+                    msg_pos:'',
+                    country_code:'86',
+                    country_data:{},
+                    code_text:'发送',
+                    isWaiting:false,
+                    on_disable:false,
+
+                    phone:'',
+                    verify_code:"",
+                    repassword:"",
+                    password:"",
+
+                },
+
+                mounted() {
+                    this.choose_country()
+                },
+                methods: {
+                   // 区号
+                    choose_country(){
+                        var _this = this;
+                        
+                        $cs.ajax('login/countryList',{},function(ret){
+                            if(ret.success){
+                                var country_arr = [];
+                                var countrys = '';
+                                for(var i in ret.data){
+                                    countrys  = {
+                                        name: ret.data[i].country,
+                                        value: ret.data[i].mobile_prefix
+                                    };
+                                    country_arr.push(countrys)
+                                }
+                                var win_w = document.documentElement.clientWidth *0.8;
+                                _this.country_data = country_arr
+                                _this.$nextTick(function() {
+                                    var uiSelect = bui.select({
+                                        trigger: ".js_select",
+                                        title:  '请选择国家',
+                                        type: "radio",
+                                        effect: "fadeInLeft",
+                                        position: "center",
+                                        direction:"center",
+                                        height:'500',
+                                        width: win_w,
+                                        data: _this.country_data,
+                                        buttons: [],
+                                        callback: function(e) {
+                                            var text = $(e.target).text();
+                                            if (text == "重置") {
+                                                uiSelect.selectNone();
+                                            } else {
+                                                uiSelect.hide();
+                                            }
+                                        },
+                                        onChange: function(a) {
+                                            uiSelect.hide();
+                                            _this.country_code = uiSelect.value()
+                                            console.log(_this.country_code);
+                                            $('#select').html('')
+                                        }
+                                    })
+                                })
+                            }else{
+                                $cs.msg(ret.message,_this.msg_pos)
+                            }
+                        })
+                    },
+                    // 获取验证码
+                    getCode(){
+                        var _this = this;
+                        if(!this.phone) return $cs.msg( '请输入手机号'  );
+                        if( this.isWaiting ) return;
+                        var params = {
+                            country_code : this.country_code,
+                            phone : this.phone,
+                            time : 120,
+                            type : 2
+                        }
+                        this.isWaiting = true;
+                        this.remainTime()
+                        $cs.ajax('login/getVerify',params,function(ret){
+                            if(ret.success){
+                                $cs.msg(ret.data,_this.msg_pos)
+                            }else{
+                                $cs.msg(ret.message,_this.msg_pos)
+                            }
+                        })
+                    },
+                    remainTime(){
+                        var _this = this;
+                        var time = 120;
+                        var interval = setInterval(function(){
+                            _this.code_text = (time--) + 's后重新获取';
+                            if( time < 0) {
+                                clearInterval(interval);
+                                _this.code_text = '发送';
+                                _this.isWaiting = false;
+                            }
+                        },1000)
+                    },
+                    commit(){
+                        var _this = this
+                        if(this.on_disable) return;
+                        if(!this.phone) return $cs.msg('请输入手机号')
+                        if(!this.verify_code) return $cs.msg('请输入验证码')
+                        if(!this.password) return $cs.msg('请输入新密码')
+                        if(!this.repassword) return $cs.msg('请确认新密码')
+                        var params = {
+                            phone :  this.phone,
+                            verify_code : this.verify_code,
+                            password : this.password,
+                            repassword : this.repassword,
+                            country_code : this.country_code
+                        }
+                        this.on_disable = true;
+                        $cs.ajax('login/forgetLoginPass',params , function(ret){
+                            _this.on_disable = false;
+                            if(ret.success){
+                                $cs.msg(ret.data || '修改成功')
+                                setTimeout(function(){
+                                    location.replace('./login.html');
+                                },1000)
+                            }else{
+                                $cs.msg(ret.message)
+                            }
+                        })
+                    }
+                },
+            });
+    }
+</script>
+</body>
+</html>

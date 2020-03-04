@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    body,html,#app{
+        height: 100%;
+        /* background: linear-gradient(left, #39bcff, #2489fc);
+        background: -webkit-linear-gradient(left, #39bcff, #2489fc); */
+    }
+    
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+           
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin('./mine_pub_coupon.html')">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">提现</div>
+            <div class="bui-bar-right" @click="$cs.toUrl('./mine_withdrawl_record.html')">
+                <a class="bui-btn">明细</a>
+            </div>
+        </header>
+        
+        <main v-cloak>
+           <div class="recharge-page">
+               <div class="wrap-from">
+                   <div class="item">
+                        <div class="mr-10">账户姓名</div>
+                        <div class="flex1">
+                            <input type="text" placeholder="请输入账户姓名" v-model="pay_name">
+                        </div>
+                   </div>
+               </div>
+               <div class="wrap-from">
+                    <div class="item ">
+                        <div class="label">账户类型</div>
+                        <div class="flex1">
+                           <select  v-model="pay_type">
+                               <option value="1">支付宝</option>
+                               <option value="2">银行卡</option>
+                           </select>
+                        </div>
+                    </div>
+                    <div class="item " v-show="pay_type==1">
+                        <div class="label">支付宝账号</div>
+                        <div class="flex1">
+                            <input type="text" placeholder="请输入支付宝账号" v-model="pay_address">
+                        </div>
+                    </div>
+                    <div class="item " v-show="pay_type==2">
+                        <div class="label">银行名称</div>
+                        <div class="flex1">
+                            <input type="text" placeholder="请输入银行名称" v-model="bank_name">
+                        </div>
+                    </div>
+                    <div class="item " v-show="pay_type==2">
+                        <div class="label">银行支行</div>
+                        <div class="flex1">
+                            <input type="text" placeholder="请输入银行支行" v-model="bank_branch">
+                        </div>
+                    </div>
+                    <div class="item " v-show="pay_type==2">
+                        <div class="label">银行卡号</div>
+                        <div class="flex1">
+                            <input type="text" placeholder="请输入银行卡号" v-model="bank_address">
+                        </div>
+                    </div>
+                </div>
+               <div class="wrap " style="margin-bottom:0">
+                   <div class="title">提现众利券</div>
+                   <div class="flex line-b pb-20">
+                       <div class="label">¥</div>
+                       <div class="input">
+                           <input type="number" placeholder="请输入提现众利券" v-model="amount">
+                       </div>
+                   </div>
+                   <div class="size-14 c-gray mt-20 ">
+                       <span>可提现 {{can_amount}} 元</span>
+                       <span class="size-12">(100起提,10的倍数)</span>
+                   </div>
+               </div>
+               <div class="wrap-from">
+                    <div class="item ">
+                        <div class="label">验证码</div>
+                        <div class="flex1">
+                            <input type="text" placeholder="请输入验证码" v-model="verify_code">
+                        </div>
+                        <div class="c-app" @click="getCode()">{{code_text}}</div>
+                    </div>
+                </div>
+               <div class="btn-app mt-30" @click="commit()">提现</div>
+           </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    is_login:"",
+                    verify_code:"",
+                    code_text:"获取验证码",
+
+                    pay_type:1,
+                    pay_name:"",
+                    pay_address:"",
+                    bank_name:"",
+                    bank_branch:"",
+                    bank_address:"",
+                    amount:"",
+                    can_amount:"0",
+                    on_disable:false
+                },
+
+                mounted() {
+                    this.can_amount = $cs.format_params().amount
+                },
+                methods: {
+                    // 获取验证码
+                    getCode(){
+                        var _this = this;
+                        if( this.isWaiting ) return;
+                        var params = {
+                            country_code : '86',
+                            phone : $cs.getStorage('phone'),
+                            time : 120,
+                            type : 4
+                        }
+                        this.isWaiting = true;
+                        this.remainTime()
+                        $cs.ajax('login/getVerify',params,function(ret){
+                            if(ret.success){
+                                $cs.msg(ret.data)
+                            }else{
+                                $cs.msg(ret.message)
+                            }
+                        })
+                    },
+                    remainTime(){
+                        var _this = this;
+                        var time = 120;
+                        var interval = setInterval(function(){
+                            _this.code_text = (time--) + 's后重新获取';
+                            if( time < 0) {
+                                clearInterval(interval);
+                                _this.code_text = '获取验证码';
+                                _this.isWaiting = false;
+                            }
+                        },1000)
+                    },
+                    commit(){
+                        var _this = this
+                        if(this.on_disable) return;
+                        if(!this.pay_name) return $cs.msg(' 请输入账户姓名');
+                        var pay_address = ''
+                        if( this.pay_type == 1 ){
+                            if( !this.pay_address )  return $cs.msg(' 请输入支付宝账号');
+                            pay_address = this.pay_address
+                        }else{
+                            if( !this.bank_name )  return $cs.msg(' 请输入银行名称');
+                            if( !this.bank_branch )  return $cs.msg(' 请输入银行支行');
+                            if( !this.bank_address )  return $cs.msg(' 请输入银行卡号');
+                            pay_address = this.bank_address
+                        }
+                        if(!this.amount) return $cs.msg(' 请输入提现众利券');
+                        if( Number(this.amount) < 100  || this.amount %10 !=0 ) return $cs.msg('100起提,10的倍数') 
+                        if(!this.verify_code) return $cs.msg(' 请输入验证码');
+
+                        var params = {
+                            amount : this.amount,
+                            pay_type : this.pay_type,
+                            pay_name : this.pay_name,
+                            pay_address : this.pay_address,
+                            bank_branch : this.bank_branch,
+                            bank_name : this.bank_name,
+                            verify_code : this.verify_code
+                        }
+                        $cs.ajax('Member/withdrawal',params , function(ret){
+                            if(ret.success){
+                                $cs.msg(ret.data || '操作成功')
+                                location.replace('./mine_pub_coupon.html')
+                            }else{
+                                $cs.msg(ret.message || '操作失败')
+                            }
+                        })
+                    }
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

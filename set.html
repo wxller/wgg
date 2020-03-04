@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+      
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left" @click="closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">设置</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main class="set-page">
+            <ul class="bui-list mt-10">
+                <li class="bui-btn bui-box">
+                    <div class="span1">清理缓存</div>
+                    <i class="icon-listright"></i>
+                </li>
+                <li class="bui-btn bui-box">
+                    <div class="flex" style="width:100%">
+                        <div >软件版本</div>
+                        <div class="">{{version}}</div>
+                    </div>
+                </li>
+            </ul>
+            <div class="btn-app mt-50" @click="logout()">退出</div>
+        </main>
+       
+
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    version:"",
+                },
+
+                mounted() {
+                    this.getVersion()
+                },
+                methods: {
+                    
+                    closeWin(){
+                        history.back()
+                    },
+                    logout(){
+                        $cs.ajax('login/logOut',{},function(ret){
+                            
+                            if(ret.success){
+                                $cs.setStorage('token','')
+                                location.href='./login.html'
+                            }
+                        })
+                    },
+                    getVersion(){
+                        var _this = this
+                        $cs.ajax('Member/platformVersion',{},function(ret){
+                            if(ret.success){
+                                _this.version = ret.data
+                            }
+                        })
+                    }
+                
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

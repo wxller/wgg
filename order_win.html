@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+   
+        .bui-page main{
+            background: #fff;
+        }
+        .bui-navbar .bui-nav>[class*=span], .bui-navbar .bui-nav>li{
+            width: calc(100%/ 4);
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin('./mine.html')">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">我的订单</div>
+            <div class="bui-bar-right" >
+                <a class="bui-btn"></a>
+            </div>
+        </header> 
+        
+        <main class="order-list-page" v-cloak>
+            <div id="uiNavbar" class="bui-navbar">
+                <ul id="nav" class="bui-nav">
+                    <li :class="['bui-btn',{'active':status==''}]" @click="choose_status('')">全部订单</li>
+                    <li :class="['bui-btn',{'active':status=='1'}]" @click="choose_status(1)">待发货</li>
+                    <li :class="['bui-btn',{'active':status=='2'}]" @click="choose_status(2)">待收货</li>
+                    <li :class="['bui-btn',{'active':status=='3'}]" @click="choose_status(3)">已完成</li>
+                </ul>
+            </div>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-main" style="background:transparent">
+                    <div class="c-gray txt-ct size-14 mt-20" v-if="dataList.length==0">暂无记录</div>
+                    <div class="goods-list" v-for="item in dataList">
+                        <img :src="(item.goods_json)[0]['images']?$cs.format_url((item.goods_json)[0]['images']):''" class="mr-10">
+                        <div class="flex1">
+                            <div class="size-14">订单号:{{item.order_code}}</div>
+                            
+                            <div class="size-14 mt-10">{{ (item.goods_json)[0]['goods_name'] }}</div>
+                            <div class="c-app mt-10">¥ {{item.order_total_price}}</div>
+                            <div class="flex">
+                                <div class="size-12 c-gray mt-5"></div>
+                                <div :class="['btn-status', {'btn-blue':item.status == 2},{'btn-gray':item.status != 2}]" @click="confirm_evt(item)">{{ format_type(item.status) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    lank_type:"1",
+                    status:'',
+                    dataList:[],
+                    uiScroll:'',
+                },
+
+                mounted() {
+                    this.init_buiScroll()
+                },
+                methods: {
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.pullrefresh({
+                            id: "#scroll",
+                            onRefresh: _this.getOrderList,
+                        });
+                    },
+                   
+                   choose_status(type){
+                       this.status = type
+                       this.getOrderList()
+                   },
+                    getOrderList(){
+                        var _this = this;
+                        var params ={}
+                        if(this.status){
+                            params.status = this.status
+                        }
+                        $cs.ajax('order/getOrderList',params,function(ret){
+                            if(ret.success){
+                                for(var k in ret.data){
+                                    if(ret.data[k]['goods_json']){
+                                        ret.data[k]['goods_json'] = JSON.parse(ret.data[k]['goods_json'])
+                                    }
+                                }
+                                _this.dataList = ret.data
+                                _this.uiScroll.reverse();
+                            }
+                        })
+                    },
+                    // -1:已取消,0:待付款;1:待发货；2待收货；3:已完成, 4=维权申请，5=维权完成
+                    format_type(state){
+                        switch(Number(state)){
+                            case 1:
+                                return '待发货';
+                            case 2:
+                                return '确认收货';
+                            case 3:
+                                return '已完成';
+                                case 0:
+                                return '待付款';
+                        }
+                    },
+                    confirm_evt(item){
+                        var _this = this;
+                        if(item.status != 2) return;
+                        $cs.ajax('order/confirm',{order_id : item.id},function(ret){
+                            if(ret.success){
+                                _this.getOrderList()
+                            }
+                        })
+                    }
+                
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

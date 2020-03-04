@@ -1,0 +1,126 @@
+@charset "UTF-8";
+/**
+* 变量
+**/
+@bgc-body: #F5F5F3;
+@c-body:#000;
+@bgc-footer:#fff;
+@bgc-header:#1C2023;
+@c-app:#2489fc;
+@c-mapp:#39bcff;
+@c-gray: #9c9c9c;
+@c-gray-light: #c2c2c2;
+@c-footer:#000;
+@c-on-footer:#2489fc;
+@c-white: #fff;
+@c-black: #000;
+@c-red: #F95C6B;
+@c-yellow:#FFD93B;
+@c-green:#1AC4A5;
+@c-mgreen:#1AC4A5;
+@c-line:#eee;
+/**
+* function
+**/
+@baseFontsize: 750; // iPhone 6尺寸的根元素大小基准值
+.px2rem(@name, @px){
+    @{name}: ((@px / @baseFontsize) ) * 7.5rem;
+}
+// 根元素大小使用 vw 单位
+@baseDesign: 750;
+// html {
+//   font-size: (@baseFontsize / @baseDesign)  * 100vw!important;
+//   // 同时，通过Media Queries 限制根元素最大最小值
+//   @media screen and (max-width: 320px) {
+//     font-size: 64px;
+//   }
+//   @media screen and (min-width: 540px) {
+//     font-size: 108px;
+//   }
+// }
+
+.fontSize(@px){
+  .px2rem(font-size, @px);
+}
+.border(@name, @num, @color){
+    @{name}: @num * 1px solid @color;
+  @media screen and (-webkit-min-device-pixel-ratio: 2) {
+      @{name}: @num / 2 * 1px solid @color;
+  }
+  @media screen and (-webkit-min-device-pixel-ratio: 3) {
+      @{name}: @num / 2 * 1px solid @color;
+  }
+}
+.border-radius-25{
+  -webkit-border-radius: 25%;
+  border-radius: 25%;
+}
+.border-radius-50{
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+}
+.border-radius(@val){
+  -webkit-border-radius: @val / @baseFontsize * 1rem;
+  border-radius: @val / @baseFontsize * 1rem;
+}
+.border-radius-full{
+  -webkit-border-radius: 100%;
+  border-radius: 100%;
+}
+// 文字超出省略号
+.text-overflow(@num){
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: @num; // @num 行数
+  -webkit-box-orient: vertical;
+}
+// 其他
+.overflow-hidden{
+  overflow: hidden;
+}
+.shade-black{
+  background-color: rgba(0,0,0,.4);
+}
+.shade-white{
+  background-color: rgba(255,255,255,.4);
+}
+.shade-white-light{
+  background-color: rgba(255,255,255,.2);
+}
+.box-shadow-primary{
+  -webkit-box-shadow: 0 2px 5px rgba(255,128,1, .5);
+  box-shadow: 0 2px 5px rgba(255,128,1, .5);
+}
+.box-shadow-primary-mini{
+  -webkit-box-shadow: 0 1px 2px rgba(255,128,1, .1);
+  box-shadow: 0 1px 2px rgba(255,128,1, .1);
+}
+.box-shadow-gray(@x,@y,@size){
+  -webkit-box-shadow: @x @y @size rgba(100,100,100, .2);
+  box-shadow: @x @y @size rgba(100,100,100, .2);
+}
+.box-shadow-black(@x,@y,@size){
+  -webkit-box-shadow: @x @y @size rgba(100,100,100, .6);
+  box-shadow: @x @y @size rgba(100,100,100, .6);
+}
+.text-shadow-black(@x,@y,@size){
+  -webkit-text-shadow: @x @y @size rgba(100,100,100, .6);
+  text-shadow: @x @y @size rgba(100,100,100, .6);
+}
+.transtion{
+  -webkit-transition: all .3s;
+  transition: all .3s;
+}
+.translateY-50{
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+.translate-50{
+  -webkit-transform: translate3d(-50%, -50%, 0);
+  transform: translate3d(-50%, -50%, 0);
+}
+.translateY(@val){
+  -webkit-transform: translateY(@val);
+  transform: translateY(@val);
+}

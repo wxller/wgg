@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+       .bui-slide-main ul li img{
+           width: 100%;
+           height: 100%;
+           object-fit: cover;
+       }
+       .adverse{
+           width: 100%;
+       }
+       
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app" >
+       
+        <main class="home-page" v-cloak  @scroll="scrollEvent($event)" id="main" >
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-head"></div>
+                <div class="bui-scroll-main" style="background:transparent">
+                
+                    <div id="slide" class="bui-slide">
+                        <div class="bui-slide-main">
+                            <ul>
+                                <li v-for="item in bannerData">
+                                    <img :src="item.pic?$cs.format_url(item.pic):'./images/home/banner.png'" alt="">
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="head-search" >
+                            <div class="search-wrap" @click="header_fixed = !header_fixed">
+                                <i class="fa fa-search"></i>
+                                <span>请输入想要购买的商品</span>
+                            </div>
+                            <i class="fa fa-msg"></i>
+                        </div>
+                    </div>
+                    <div class="head-search-fixed" v-show="header_fixed">
+                        <div class="search-wrap">
+                            <i class="fa fa-search"></i>
+                            <input type="text" placeholder="请输入想要购买的商品" v-model="keywords" @blur="search_evt()" class="c-black">
+                        </div>
+                        <i class="fa fa-msg"></i>
+                    </div>
+                    <div>
+                        <img src="./images/home/adverse.png" class="adverse">
+                    </div>
+                    <ul class="flex-nav">
+                        <li class="nav" @click="$cs.toUrl('./share.html')"><img src="./images/home/nav1.png" alt=""></li> 
+                        <li class="nav" @click="$cs.toUrl('./all_exchange_goods.html')"><img src="./images/home/nav2.png" alt=""></li>
+                        <li class="nav" @click="$cs.waiting()"><img src="./images/home/nav3.png" alt=""></li> 
+                        <li class="nav" @click="$cs.waiting()"><img src="./images/home/nav4.png" alt=""></li>
+                    </ul>
+                    <div class="flex-nav2">
+                        <div class="title">玩转众利豆</div>
+                        <div class="nav-tab">
+                            <div class="tab" @click="$cs.toUrl('./mine_bonus_card.html')">
+                                <div >
+                                    <div class="size-16 mb-10">红利卡</div>
+                                    <p class="size-12">分享未来</p>
+                                    <p class="size-12">发展红利</p>
+                                </div>
+                                <img src="./images/home/tab1.png" alt="">
+                            </div>
+                            <div class="tab">
+                                <div>
+                                    <div class="size-16  mb-10">VIP店主</div>
+                                    <p class="size-12">自购优惠</p>
+                                    <p class="size-12">分享有礼</p>
+                                </div>
+                                <img src="./images/home/tab2.png" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="integral-wrap" @click="$cs.toUrl('./all_exchange_goods.html')" id="js_limit_el">
+                        <div class="lf-text">
+                            <span class="title">积分专区</span>
+                            <span class="sub_title">最新优质好货</span>
+                        </div>
+                        <span class="rt-btn">进入换购 ></span>
+                    </div>
+              
+                    <ul class="goods-list">
+                        <li class="goods-item" @click="toDetail(item.id)" v-for="item in dataList">
+                            <div class="box">
+                                <img :src="item.images[0]?$cs.format_url(item.images[0]):''" class="imgs">
+                                <div class="desc">
+                                    <div class="title">{{item.goods_name}}</div>
+                                    <div class="price ft-bold">{{item.price}}积分</div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bui-scroll-foot"></div>
+            </div>
+            
+        </main>
+
+            
+        <footer>
+            <ul class="bui-nav">
+                <li class="bui-btn bui-box-vertical active" >
+                    <i class="fa ft-home-on"></i>
+                    <div class="span1">首页</div>
+                </li>
+                <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./assemble.html')">
+                    <i class="fa ft-assemble"></i>
+                    <div class="span1">拼购专区</div>
+                </li>
+                <li class="bui-btn bui-box-vertical" @click="toCaptain()">
+                    <i class="fa ft-team"></i>
+                    <div class="span1">团长中心</div>
+                </li>
+                <li class="bui-btn bui-box-vertical bui-btn-more" @click="$cs.toUrl('./mine.html')">
+                    <i class="fa ft-mine"></i>
+                    <div class="span1">我的</div>
+                </li>
+            </ul>
+        </footer>
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    is_login:"",
+                    header_fixed:false,//导航是否显示
+                    uiSlide:"",
+                    bannerData:[],
+                    is_captain:"0",
+                    dataList:[],
+                    uiScroll:'',
+                    keywords:""
+                },
+
+                mounted() {
+                
+                    // 初始化
+
+                    this.getSlides()
+                    this.check_login()
+                    this.init_buiScroll()
+                },
+                methods: {
+                    // 判断登录
+                    check_login(){
+                        this.is_login = $cs.getStorage('token')
+                        if( !this.is_login){
+                            location.href='./login.html'
+                        }
+                    },
+                    
+                    getSlides(){
+                        var _this = this;
+                        $cs.ajax('goods/sliders',{},function(ret){
+                            if (ret.success) {
+                                _this.bannerData = ret.data;
+                                _this.$nextTick(function(){
+                                    var uiSlide = bui.slide({
+                                        id:"#slide",
+                                        height:380,
+                                        autopage:true
+                                    })
+                                })
+                            } else {
+                                $cs.msg(ret.message || '数据为空', 'middle')
+                            }
+                        })
+                    },
+                    // 商品详情
+                    toDetail(id){
+                        location.href = './goods_detail.html?id='+id
+                    },
+                    // 页面滚动
+                    scrollEvent(e){
+                        var limi_t = $('#js_limit_el').offset().top
+                        if(Number(limi_t) <=0){
+                            this.header_fixed = true
+                        }else{
+                            this.header_fixed = false;
+                        }
+                       
+                    },
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.scroll({
+                            id: "#scroll",
+                            children: ".bui-list",//循环遍历的数据的父层,如果不对,会出现无限滚动的情况
+                            page: 1,
+                            pageSize: 15,
+                            onRefresh: _this.refresh,
+                            onLoad: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList(page,pagesize,is_refresh) {
+                        var _this = this;
+                        var params = {
+                            page: page,
+                            rows: pagesize,
+                            keywords: this.keywords
+                        }
+                        loading.show();
+                        $cs.ajax('goods/getGoodsList',params, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                var data = ret.data;
+                                if(is_refresh){
+                                    _this.dataList = [];
+                                }
+                                if(data.length > 0){
+                                    _this.dataList = _this.dataList.concat(data);
+                                }
+                               
+                                _this.uiScroll.updatePage(page++, data);
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                    refresh () {
+                        page = 1;
+                        pagesize = 15;
+
+                        this.getSlides()
+                        this.getDataList(page,pagesize,true);
+
+                    },
+                    search_evt(){
+                        page = 1;
+                        pagesize = 15;
+                        this.getDataList(page,pagesize,true);
+                    },
+                    // getGoodsList(){
+                    //     var _this = this
+                    //     $cs.ajax('goods/getGoodsList',{
+                    //         page : this.page,
+                    //         rows : 10
+                    //     },function(ret){
+                    //         if(ret.success){
+                    //             if(ret.data.length > 0){
+                    //                 _this.dataList = _this.dataList.concat(ret.data)
+                    //                 _this.nomore = false
+                    //             }else{
+                    //                 _this.nomore = true
+                    //             }
+                    //         }
+                    //     })
+                    // },
+                    // load_more(){
+                    //     if(this.is_nomore) return;
+                    //     this.page++;
+                    //     this.getGoodsList()
+                    // },
+                    
+                    toCaptain(){
+                        var _this = this
+                        $cs.ajax('member/getUserDetail',{},function(ret){
+                            if(ret.success){
+                                if(ret.data.is_captain == 1){
+                                    $cs.toUrl('./uplevel_captain.html')
+                                }else{
+                                    $cs.toUrl('./uplevel.html')
+                                }
+                            }
+                        })
+                       
+                    }
+                
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

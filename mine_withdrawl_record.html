@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    .bui-page>.main, .bui-page>main{
+        background: #fff;
+    }
+    .pub-page .list-record .item{
+        width: calc(100% / 5);
+    }
+        .list-item{
+            box-shadow: 0 0 6px #ececec;
+            border-radius: 0.1rem;
+            width: 94%;
+            margin: 0 auto;
+            margin-top: 0.2rem;
+            font-size: 0.24rem;
+            padding-bottom: 0.1rem;
+        }
+        .list-item>p{
+            padding: 0.1rem 0.2rem;
+        }
+        .list-item>p.title{
+            padding: 0.2rem;
+            color: #000;
+            font-size: 0.32rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+           
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin('./mine_withdrawl.html')">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">提现记录</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main v-cloak>
+            <div class="pub-page bui-list">
+                <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                    <div class="bui-scroll-head"></div>
+                    <div class="bui-scroll-main" style="background:transparent">
+                        <div class="list-item" v-for="item in dataList">
+                            <p class="title line-b">
+                                <span>金额:{{item.amount}}</span>
+                                <span class="c-app size-12">{{ item.status==0?'待处理':(item.status==2?'已完成':'拒绝') }}</span>
+                            </p>
+                            <p class="flex mt-5">
+                                <span>实际到账:{{item.practical_amount}}</span>
+                                <span>手续费:{{item.poundage}}</span>
+                            </p>
+                            <p class="flex">
+                                <span>方式:{{item.pay_type==1?'支付宝':'银行卡'}}</span>
+                                <span>{{item.create_time}}</span>
+                            </p>
+                            <p class="c-red" v-if="item.status==3">拒绝原因:{{item.why}}</p>
+                        </div>
+                    </div>
+                    <div class="bui-scroll-foot"></div>
+                </div>
+            </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    dataList:[],
+                    uiScroll:'',
+                },
+
+                mounted() {
+                    this.init_buiScroll()
+                },
+                methods: {
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.scroll({
+                            id: "#scroll",
+                            children: ".bui-list",//循环遍历的数据的父层,如果不对,会出现无限滚动的情况
+                            page: 1,
+                            pageSize: 15,
+                            onRefresh: _this.refresh,
+                            onLoad: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList(page,pagesize,is_refresh) {
+                        var _this = this;
+                        var params = {
+                            page: page,
+                            rows: pagesize,
+                        }
+                        loading.show();
+                        $cs.ajax('Member/withdrawalList',params, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                var data = ret.data;
+                                if(is_refresh){
+                                    _this.dataList = [];
+                                }
+                                if(data.length > 0){
+                                    _this.dataList = _this.dataList.concat(data);
+                                }
+                               
+                                _this.uiScroll.updatePage(page++, data);
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                    refresh () {
+                        page = 1;
+                        pagesize = 15;
+                        this.getDataList(page,pagesize,true);
+                    },
+                
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

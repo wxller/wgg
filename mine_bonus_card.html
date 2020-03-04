@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    .bui-page>.main, .bui-page>main{
+        /* background: #fff; */
+    }
+    .bui-actionsheet{
+        background: transparent;
+    }
+    
+    
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+           
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">红利卡</div>
+            <div class="bui-bar-right" id="btnOpen">
+                <a class="bui-btn">兑换</a>
+            </div>
+        </header>
+        
+        <main v-cloak>
+           <div class="bonus-card-page">
+               <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                    <div class="bui-scroll-head"></div>
+                    <div class="bui-scroll-main" style="background:transparent">
+                        <div class="top-asset">
+                            <div class="item">
+                                <p class="num">¥ {{bonus.total_count}}</p>
+                                <p>总卡数</p>
+                            </div>
+                            <div class="item">
+                                <p class="num">¥ {{bonus.sum_income_amount}}</p>
+                                <p>总金额</p>
+                            </div>
+                            <div class="item">
+                                <p class="num">¥ {{bonus.committed_amount}}</p>
+                                <p>待发放金额</p>
+                            </div>
+                            <div class="item">
+                                <p class="num">¥ {{bonus.sum_issued_amount}}</p>
+                                <p>已发放金额</p>
+                            </div>
+                        </div>
+                         <ul class="bui-list list-card">
+                             <li class="list-item" v-for="item in dataList">
+                                 <div class="item-lf">
+                                     <div class="flex flex-wrap">
+                                        <span class="flex-box flex-ali-ct"> <i class="fa-logo"></i> 吾聚购</span> 
+                                         <span class="size-12">编号: {{item.order_code}}</span>
+                                     </div>
+                                     <div class="mt-20"> <span>{{item.issued_amount}}</span> <span class="total">/ {{item.income_amount}}</span> </div>
+                                     <div class="size-14">{{item.create_time}}</div>
+                                 </div>
+                                 <div class="item-rt">
+                                     <div>今日红利</div>
+                                     <div class="num">{{item.today_amount}}</div>
+                                 </div>
+                             </li>
+                         </ul>
+                    </div>
+                    <div class="bui-scroll-foot"></div>
+                </div>
+           </div>
+        </main>
+
+        <!-- 自定义弹出菜单结构	 -->
+        <div id="actionsheet" class="bui-actionsheet actionsheet-custom screen-card-page" style="display: none">
+            <div class="screen-card-wrap">
+               
+                <div class="middle">
+                    <img src="./images/mine/card.png" alt="">
+                </div>
+                <div class="bottom">
+                    <div class="mr-10">兑换</div>
+                    <div>
+                        <span class="icon" @click="change_amount(1)">-</span>
+                        <span class="icon">{{amount}}</span>
+                        <span class="icon" @click="change_amount(2)">+</span>
+                    </div>
+                    <div class="ml-10">张红利卡</div>
+                </div>
+                <div class="mt-10 txt-ct">消费{{now_amount}}众利豆</div>
+                <div class="btns">
+                    <div class="btn dialog_close">取消</div>
+                    <div class="btn" @click="commit()">确认</div>
+                </div>
+                
+            </div>
+            <div class="close-btn dialog_close" >
+                <i class="fa fa-close-screen"></i>
+            </div>
+        </div>
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    dataList:[],
+                    uiScroll:'',
+                    bonus:"",
+                    amount:1,
+                    sigle_num:0,
+                    now_amount:0,
+                    dialog:""
+                },
+
+                mounted() {
+                    this.init_buiScroll()
+                    this.dialog_event()
+                    this.getCard()
+                },
+                methods: {
+
+                     //自定义弹出菜单初始化
+                     dialog_event(){
+                         var _this = this
+                        _this.dialog = bui.dialog({
+                            id: "#actionsheet",
+                            position:"center",
+                            effect:"fadeInDown",
+                            onMask: function (argument) {
+                                _this.dialog.close();
+                            }
+                        });
+                        
+                        $('#btnOpen').on("click",function (argument) {
+                            _this.dialog.open();
+                        })
+                        $('.dialog_close').on('click',function(argument){
+                            _this.dialog.close()
+                        })
+                    },
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.scroll({
+                            id: "#scroll",
+                            children: ".bui-list",//循环遍历的数据的父层,如果不对,会出现无限滚动的情况
+                            page: 1,
+                            pageSize: 15,
+                            onRefresh: _this.refresh,
+                            onLoad: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList(page,pagesize,is_refresh) {
+                        var _this = this;
+                        var params = {
+                            page: page,
+                            rows: pagesize,
+                        }
+                        loading.show();
+                        $cs.ajax('Member/bonusCardList',params, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                _this.bonus = ret.data.data
+                                var data = ret.data.list;
+                                if(is_refresh){
+                                    _this.dataList = [];
+                                }
+                                if(data.length > 0){
+                                    _this.dataList = _this.dataList.concat(data);
+                                }
+                               
+                                _this.uiScroll.updatePage(page++, data);
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                    refresh () {
+                        page = 1;
+                        pagesize = 15;
+                        this.getDataList(page,pagesize,true);
+                        this.getCard()
+                        this.uiScroll.reverse();
+                    },
+                    getCard(){
+                        var _this = this;
+                        $cs.ajax('Member/bonusCardAmount',{},function(ret){
+                            if(ret.success){
+                                _this.sigle_num = ret.data
+                                _this.now_amount = ret.data
+                            }
+                        })
+                    },
+                    change_amount(type){
+                        if(type==1){
+                            if(this.amount <= 1){
+                                $cs.msg('不能低于1')
+                            }else{
+                                this.amount--
+                            }
+                        }else if(type == 2){
+                            this.amount++
+                        }
+                        this.now_amount =  (this.amount* this.sigle_num).toFixed(0)
+                    },
+                    commit(){
+                        var _this = this
+                        $cs.ajax('Member/exchangeBonusCard',{number : this.amount},function(ret){
+                            if(ret.success){
+                                $cs.msg(ret.data || '操作成功')
+                                _this.dialog.close()
+                                setTimeout(() => {
+                                    $cs.closeWin('./mine_pub_dou.html')
+                                }, 1000);
+                            }else{
+                                $cs.msg(ret.message || '操作失败')
+                            }
+                        })
+                    }
+                
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

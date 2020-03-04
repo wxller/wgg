@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <main class="captain-page-wrap" v-cloak>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-main" style="background:transparent">
+            
+                    <div class="top-wrap">
+                        <div class="flex-box flex-ali-ct">
+                            <i class="fa fa-back" @click="$cs.closeWin()"></i>
+                                <img :src="userData.head_portrait?$cs.format_url(userData.head_portrait):'./images/head.png'" class="head">
+                                <span>{{userData.username}}</span>
+                        </div>
+                        <div class="size-13 mt-10">累计收益 <span class="size-14">¥ <span class="size-16">{{userData.sum}}</span></span></div>
+                        <div class="asset-wrap">
+                            <div class="top mb-10">
+                                <p class="left">
+                                    <span class="ed-btn">额度</span>
+                                    <span class="size-12">¥</span>
+                                    <span>{{userData.quota}}</span>
+                                </p>
+                                <img :src="'./images/assemble/level'+userData.level+'.png'" class="level">
+                            </div>
+                            <!-- <div class="progress"><div class="bar" style="width:50%"></div></div>
+                            <div class="txt-rt mt-10 mb-10 c-black size-14">额度剩余:50%</div> -->
+                            <div class="btn-app" @click="$cs.toUrl('captain_buy_gift.html')">续约</div>
+                        </div>
+                    </div>
+                    <div class="total">
+                        <div>团队总业绩</div>
+                        <div>{{userData.teamsum}}></div>
+                    </div>
+                    <div class="num-wrap">
+                        <div class="flex mt-10">
+                            <span class="size-black">团长收益</span> 
+                            <span class="c-gray size-14" @click="$cs.toUrl('./mine_coupon_record.html')">更多></span>
+                        </div>
+                        <div class="item mt-10" v-for="item in dataList">
+                            <p>{{item.remark}}</p>
+                            <p class="size-black txt-ct">¥{{item.amount}}</p>
+                            <p class="size-12">{{item.update_time}}</p>
+                        </div>
+                    </div>
+                    <div class="nav-tab">
+                            <div class="tab" @click="$cs.toUrl('./my_comunity.html')">
+                                <img src="./images/assemble/tab1.png">
+                                <p class="size-14">我的社区</p>
+                            </div>
+                            <div class="tab" @click="$cs.toUrl('./order_team_win.html')">
+                                <img src="./images/assemble/tab2.png">
+                                <p class="size-14">发团列表</p>
+                            </div>
+                            <div class="tab" @click="$cs.waiting()">
+                                <img src="./images/assemble/tab3.png">
+                                <p class="size-14">任务中心</p>
+                            </div>
+                            <div class="tab" @click="$cs.waiting()">
+                                <img src="./images/assemble/tab4.png">
+                                <p class="size-14">我的店铺</p>
+                            </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        
+    <!-- <footer>
+        <ul class="bui-nav">
+            <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./index.html')">
+                <i class="fa ft-home"></i>
+                <div class="span1">首页</div>
+            </li>
+            <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./assemble.html')">
+                <i class="fa ft-assemble"></i>
+                <div class="span1">拼购专区</div>
+            </li>
+            <li class="bui-btn bui-box-vertical active" >
+                <i class="fa ft-team-on"></i>
+                <div class="span1">团长中心</div>
+            </li>
+            <li class="bui-btn bui-box-vertical bui-btn-more " @click="$cs.toUrl('./mine.html')">
+                <i class="fa ft-mine"></i>
+                <div class="span1">我的</div>
+            </li>
+        </ul>
+    </footer> -->
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    userData:"",
+                    dataList:''
+                },
+
+                mounted() {
+                
+                    this.init_buiScroll()
+                    
+                },
+                methods: {
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.pullrefresh({
+                            id: "#scroll",
+                            onRefresh: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList() {
+                        var _this = this;
+                       
+                        loading.show();
+                        $cs.ajax('Cooperative_purchase/captainInfo',{}, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                _this.userData = ret.data.userData
+                                _this.dataList = ret.data.list;
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

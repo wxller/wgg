@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-page main{
+           background: #fff;
+       }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left" @click="closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">用户协议</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main v-cloak>
+            <h3 class="txt-ct mt-10">{{title}}</h3>
+            <div class="p-10" v-html="content"></div>
+        </main>
+       
+
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/citys.js"></script>
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    title:"",
+                    content:""
+                },
+
+                mounted() {
+                
+                    this.getData()
+                },
+                methods: {
+                    
+                    closeWin(){
+                        history.back()
+                    },
+                    getData(){
+                        var _this = this
+                        $cs.ajax('login/userAgreement',{ type : 1} , function(ret){
+                            if(ret.success){
+                                _this.title = ret.data.title;
+                                _this.content = ret.data.content
+                            }else{
+                                
+                            }
+                        })
+                    }
+                    
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

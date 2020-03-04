@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+   
+        .bui-navbar{
+            background: #fff;
+        }
+        .bui-navbar .bui-nav>[class*=span], .bui-navbar .bui-nav>li{
+            width: calc(100%/ 3);
+        }
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin('./mine.html')">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">参团列表</div>
+            <div class="bui-bar-right" >
+                <a class="bui-btn"></a>
+            </div>
+        </header> 
+        
+        <main class="order-team-page" v-cloak>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-main" style="background:transparent">
+                    <div class="c-gray txt-ct size-14 mt-20"  v-if="dataList.length==0">暂无记录</div>
+                    <div class="order-list" v-for="item in dataList" @click="toDetail(item.id)">
+                        <div class="order-code">
+                            <p class="flex">
+                                <img :src="item.head_portrait?$cs.format_url(item.head_portrait):'./images/head.png'" class="head" onerror="this.src='./images/head.png'">
+                                <span>{{item.username}}</span>
+                            </p>
+                            <p>发团编号:{{item.sn_number}}</p>
+                        </div>
+                        <div class="order-desc">
+                            <div class="flex p-10 line-b">
+                                <img :src="item.goods_img?$cs.format_url(item.goods_img):''" class="card" >
+                                <div class="flex1">
+                                    <p class="c-black size-14">{{item.goods_title}}</p>
+                                    <p class="c-black size-12 mt-5">发团时间: <span class="c-gray">{{item.create_time}}</span></p>
+                                    <p class="c-gray size-12 mt-5">已参与: <span class="c-app">{{item.team_num}}/{{item.total_num}}人</span></p>
+                                </div>
+                                <div class="sign-in">参与</div>
+                            </div>
+                            <div class="flex bottom">
+                                <div class="c-red">¥ {{item.goods_amount}}</div>
+                                <div class="flex mt-10">
+                                    <span class="size-12 mr-10">距结束时间</span> 
+                                    <p class="time" v-html="item.end_t_show">
+                                        
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    dataList:[],
+                    uiScroll:""
+                },
+
+                mounted() {
+                    this.init_buiScroll()
+                    
+                },
+                methods: {
+                    toDetail(id){
+                        $cs.toUrl('./assemble_goods_detail.html?id='+id)
+                    },
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.pullrefresh({
+                            id: "#scroll",
+                            onRefresh: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList() {
+                        var _this = this;
+                       
+                        loading.show();
+                        $cs.ajax('Cooperative_purchase/joinGroup',{}, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                _this.dataList = ret.data;
+                                _this.timeCount()
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+
+                    timeCount(){
+                        var _this = this;
+                        _this.interval = setInterval(function(){
+                            _this.change_time()
+                        },1000)
+                    },
+                    change_time(){
+                        var _this = this
+                        for(var i=0 ;i< _this.dataList.length ;i++){
+                            _this.dataList[i]['end_t_show'] = _this.format_time(_this.dataList[i])
+                            
+                            _this.$forceUpdate();  //必须加上，不然页面不刷新
+                        }
+                    },
+
+                    format_time(item){
+                        var _this = this;
+                        var ctime = (new Date()).getTime()/1000;
+                        if(item.is_end == 0){
+                            if(item.end_time){
+                                var etime = (new Date(item.end_time.replace(/-/g,'/'))).getTime()/1000;
+                                var length = etime - ctime;
+                                if(length>0){
+                                    var a = _this.timestampToTime(length);
+                                    return a;
+                                }else{
+                                    return '<span>00</span> <span>00</span> <span>00</span>';
+                                }
+                            }
+                           
+                        }
+                        if(item.is_end == 1){
+                            return '<span>00</span> <span>00</span> <span>00</span>'
+                        }
+                    },
+
+                    timestampToTime(length_t) {
+                        var t =''
+                        //天数
+                        var days = Math.floor(length_t / (60 * 60 * 24));
+                        //取模（余数）
+                        var modulo = length_t % (60 * 60 * 24);
+                        //小时数
+                        var hours = Math.floor(modulo / (60 * 60));
+                        hours= hours<10 ? '0'+hours:hours;
+                            modulo = modulo % (60 * 60);
+                        //分钟
+                        var minutes = Math.floor(modulo / 60);
+                            minutes= minutes<10 ? '0'+minutes:minutes;
+                        //秒
+                        var seconds =Math.floor(modulo % 60) ;
+                        seconds= seconds<10 ? '0'+seconds:seconds;
+                        //输出到页面
+                        // t = days +'天'+ hours+'时'+minutes+'分'+seconds +'秒'
+                       t ='<span>'+hours+'</span> '+'<span>'+minutes+'</span> '+'<span>'+seconds+'</span>'
+                        return  t;
+                    },
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

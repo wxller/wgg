@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    body,html,#app{
+        height: 100%;
+    }
+    
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+           
+        
+        <main class="login-page">
+            <div class="top-logo">
+                <img src="./images/logo.png" class="logo">
+                <div>拼的多 赚的多 欢乐多</div>
+            </div>
+            <div class="form-wrap">
+                    <ul class="bui-list">
+                        <li class="bui-btn bui-box clearactive">
+                            <label class="bui-label" for="phonenumber">
+                                <img src="./images/icon/phone.png" class="icon-lf">
+                            </label>
+                            <div class="span1">
+                                <div class="bui-input user-input">
+                                    <input id="phonenumber" type="number" class="bui-input" placeholder="请输入手机号" v-model="phone" @input="is_register()">
+                                </div>
+                            </div>
+                        </li>
+                        <li class="bui-btn bui-box clearactive">
+                            <label class="bui-label" for="vercode">
+                                <img src="./images/icon/code.png" class="icon-lf">
+                            </label>
+                            <div class="span1">
+                                <div class="bui-input user-input">
+                                    <input id="vercode" type="number" class="bui-input"  placeholder="请输入验证码" v-model="verify_code">
+                                </div>
+                            </div>
+                            <label class="bui-label size-13 c-app" @click="getCode()">{{code_text}}</label>
+                        </li>
+                        <li class="bui-btn bui-box clearactive" v-show="is_on == 0">
+                            <label class="bui-label" for="invite_code">
+                                <img src="./images/icon/invite_code.png" class="icon-lf">
+                            </label>
+                            <div class="span1">
+                                <div class="bui-input user-input">
+                                    <input id="invite_code" type="text" class="bui-input"  placeholder="请输入邀请码" v-model="invite_code">
+                                </div>
+                            </div>
+                        </li>
+                        <li class="bui-btn size-12 txt-ct mt-20">
+                            我已阅读并同意<span class="c-app" @click="$cs.toUrl('./agreement.html')">《吾G购会员用户协议》</span>
+                        </li>
+                    </ul>
+                    <div class="btn-app" @click="on_login()">登录</div>
+            </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    is_login:"",
+                    code_text:"获取验证码",
+                    verify_code:"",
+                    phone:"",
+                    invite_code:"",
+                    is_on:1
+                },
+
+                mounted() {
+                    
+                },
+                methods: {
+                    is_register(){
+                        var _this = this
+                        if ( /(13\d|14[57]|15[^4,\D]|17[13678]|18\d)\d{8}|170[0589]\d{7}/.test(this.phone) ) {
+                            $cs.ajax('login/is_register',{
+                                phone :  _this.phone
+                            },function(ret){
+                                console.log(ret)
+                                if(ret.success){
+                                    _this.is_on = ret.data
+                                }else{
+                                    _this.is_on = 1
+                                }
+                            })
+                        }
+                    },
+                    on_login(){
+                        if(!this.phone) return $cs.msg('请输入手机号');
+                        if(!this.verify_code) return $cs.msg('请输入验证码');
+                        // if(!this.invite_code) return $cs.msg('请输入邀请码');
+                        var params = {
+                            login_type : '2',
+                            verify_code : this.verify_code,
+                            phone : this.phone,
+                            invite_code : this.invite_code
+                        }
+                        $cs.ajax('login/LoginReg',params , function(ret){
+                            if(ret.success){
+                                $cs.msg('登录成功');
+                                if(ret.data){
+                                    for(var k in ret.data){
+                                        $cs.setStorage(k,ret.data[k])
+                                    }
+                                }
+                                setTimeout(function(){
+                                    window.location.replace('./index.html')
+                                },1000)
+                            }else{
+                                $cs.msg(ret.message || '登录失败');
+                            }
+                        })
+                    },
+                    // 获取验证码
+                    getCode(){
+                        var _this = this;
+                        if(!this.phone) return $cs.msg( '请输入手机号'  );
+                        if( this.isWaiting ) return;
+                        var params = {
+                            country_code : '86',
+                            phone : this.phone,
+                            time : 120,
+                            type : 1
+                        }
+                        this.isWaiting = true;
+                        this.remainTime()
+                        $cs.ajax('login/getVerify',params,function(ret){
+                            if(ret.success){
+                                $cs.msg(ret.data)
+                            }else{
+                                $cs.msg(ret.message)
+                            }
+                        })
+                    },
+                    remainTime(){
+                        var _this = this;
+                        var time = 120;
+                        var interval = setInterval(function(){
+                            _this.code_text = (time--) + 's后重新获取';
+                            if( time < 0) {
+                                clearInterval(interval);
+                                _this.code_text = '获取验证码';
+                                _this.isWaiting = false;
+                            }
+                        },1000)
+                    },
+                
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

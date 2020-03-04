@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    body,html,#app{
+        height: 100%;
+        /* background: linear-gradient(left, #39bcff, #2489fc);
+        background: -webkit-linear-gradient(left, #39bcff, #2489fc); */
+    }
+    
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+           
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin('./mine_pub_coupon.html')">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">充值</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main v-cloak>
+           <div class="recharge-page">
+               <div class="wrap">
+                   <div class="title">充值金额</div>
+                   <div class="flex">
+                       <div class="label">¥</div>
+                       <div class="input">
+                           <input type="number" placeholder="最低充值金额为100" v-model="amount">
+                       </div>
+                   </div>
+               </div>
+               <div class="btn-app" @click="commit()">充值</div>
+           </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    amount:""
+                },
+
+                mounted() {
+                
+                },
+                methods: {
+                    commit(){
+                        var _this = this;
+                        loading.show()
+                        $cs.ajax('Member/topUp',{amount : this.amount},function(ret){
+                            loading.hide()
+                            if(ret.success){
+                                $cs.msg(ret.data || '充值成功')
+                                setTimeout(() => {
+                                    window.location.replace('./mine_pub_coupon.html')
+                                }, 1000);
+                            }else{
+                                $cs.msg(ret.message || '充值失败')
+                            }
+                        })
+                    }
+                
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

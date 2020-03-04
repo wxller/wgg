@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+   
+        .bui-navbar{
+            background: #fff;
+        }
+        .bui-navbar .bui-nav>[class*=span], .bui-navbar .bui-nav>li{
+            width: calc(100%/ 3);
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin('./mine.html')">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">拼团列表</div>
+            <div class="bui-bar-right" >
+                <a class="bui-btn"></a>
+            </div>
+        </header> 
+        
+        <main class="order-team-page" v-cloak>
+            <div id="uiNavbar" class="bui-navbar">
+                <ul id="nav" class="bui-nav">
+                    <li :class="['bui-btn',{'active':status=='1'}]" @click="choose_status(1)">正在拼团</li>
+                    <li :class="['bui-btn',{'active':status=='2'}]" @click="choose_status(2)">成功拼团</li>
+                    <li :class="['bui-btn',{'active':status=='3'}]" @click="choose_status(3)">历史拼团</li>
+                </ul>
+            </div>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-main" style="background:transparent">
+                    <div class="c-gray txt-ct size-14 mt-20" v-if="dataList.length==0">暂无记录</div>
+                    <div class="order-list" v-for="item in dataList" @click="toDetail(item.id)">
+                        <div class="order-code"><p>发团编号:{{item.sn_number}}</p><p class="c-app">{{ status == 1?'进行中':(status==2?'已完成':'已结束') }}</p></div>
+                        <div class="order-desc">
+                            <div class="flex p-5">
+                                <img :src="item.goods_img?$cs.format_url(item.goods_img):''" class="card">
+                                <div class="flex1">
+                                    <p class="c-black size-14">{{item.goods_title}}</p>
+                                    <p class="c-black size-12 mt-5">发团时间: <span class="c-gray">{{item.create_time}}</span></p>
+                                    <p class="c-gray size-12 mt-5">参团人数: <span class="c-app">{{item.team_num}}/{{item.total_num}}</span>人</p>
+                                </div>
+                            </div>
+                            <div class="flex bottom">
+                                <div class="c-red">¥ {{item.goods_amount}}</div>
+                                <div class="flex">
+                                    <span class="size-12 mr-10">距结束时间</span> 
+                                    <p class="time" v-html="item.end_t_show">
+
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    status:1,
+                    uiScroll:"",
+                    dataList:[]
+                },
+
+                mounted() {
+                    this.init_buiScroll()
+                },
+                methods: {
+                    choose_status(type){
+                        this.status = type;
+                        this.refresh()
+                    },
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.scroll({
+                            id: "#scroll",
+                            children: ".bui-list",//循环遍历的数据的父层,如果不对,会出现无限滚动的情况
+                            page: 1,
+                            pageSize: 15,
+                            onRefresh: _this.refresh,
+                            onLoad: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList(page,pagesize,is_refresh) {
+                        var _this = this;
+                        var params = {
+                            page: page,
+                            rows: pagesize,
+                            status: this.status
+                        }
+                        loading.show();
+                        $cs.ajax('Cooperative_purchase/orderList',params, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                var data = ret.data;
+                                if(is_refresh){
+                                    _this.dataList = [];
+                                }
+                                if(data.length > 0){
+                                    _this.dataList = _this.dataList.concat(data);
+                                }
+                               _this.timeCount()
+                                _this.uiScroll.updatePage(page++, data);
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                    refresh () {
+                        page = 1;
+                        pagesize = 15;
+                        this.getDataList(page,pagesize,true);
+                    },
+                    timeCount(){
+                        var _this = this;
+                        _this.interval = setInterval(function(){
+                            _this.change_time()
+                        },1000)
+                    },
+                    change_time(){
+                        var _this = this
+                        for(var i=0 ;i< _this.dataList.length ;i++){
+                            _this.dataList[i]['end_t_show'] = _this.format_time(_this.dataList[i])
+                            
+                            _this.$forceUpdate();  //必须加上，不然页面不刷新
+                        }
+                    },
+
+                    format_time(item){
+                        var _this = this;
+                        var ctime = (new Date()).getTime()/1000;
+                        if(item.is_end == 0){
+                            if(item.end_time){
+                                var etime = (new Date(item.end_time.replace(/-/g,'/'))).getTime()/1000;
+                                var length = etime - ctime;
+                                if(length>0){
+                                    var a = _this.timestampToTime(length);
+                                    return a;
+                                }else{
+                                    return '<span>00</span> <span>00</span> <span>00</span>';
+                                }
+                            }
+                           
+                        }
+                        if(item.is_end == 1){
+                            return '<span>00</span> <span>00</span> <span>00</span>'
+
+                        }
+                    },
+
+                    timestampToTime(length_t) {
+                        var t =''
+                        //天数
+                        var days = Math.floor(length_t / (60 * 60 * 24));
+                        //取模（余数）
+                        var modulo = length_t % (60 * 60 * 24);
+                        //小时数
+                        var hours = Math.floor(modulo / (60 * 60));
+                        hours= hours<10 ? '0'+hours:hours;
+                            modulo = modulo % (60 * 60);
+                        //分钟
+                        var minutes = Math.floor(modulo / 60);
+                            minutes= minutes<10 ? '0'+minutes:minutes;
+                        //秒
+                        var seconds =Math.floor(modulo % 60) ;
+                        seconds= seconds<10 ? '0'+seconds:seconds;
+                        //输出到页面
+                        // t = days +'天'+ hours+'时'+minutes+'分'+seconds +'秒'
+                       t ='<span>'+hours+'</span> '+'<span>'+minutes+'</span> '+'<span>'+seconds+'</span>'
+                        return  t;
+                    },
+                    toDetail(id){
+                        $cs.toUrl('./assemble_goods_detail.html?id='+id)
+                    },
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

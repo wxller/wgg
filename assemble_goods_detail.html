@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    /* .bui-slide{
+        min-height: 200px;
+        background: #fff;
+    }
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+        .bui-slide-main li img{
+            height: 100%;
+            width: 100%;
+        } */
+        .bui-actionsheet{
+            border-top-left-radius: 0.4rem;
+            border-top-right-radius: 0.4rem;
+        }
+        .banner{
+            width: 100%;
+            height: 5rem;
+        }
+        .goods-bom-buy{
+            position: fixed;
+            bottom: 0;
+            background: #fff;
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <main class="goods-detail-page" v-cloak>
+            <!-- <div id="slide" class="bui-slide" >
+                <div class="bui-slide-main">
+                    <ul>
+                        <li v-for="item in bannerData">
+                            <img :src="item?$cs.format_url(item):'./images/home/banner.png'" alt="">
+                        </li>
+                    </ul>
+                </div>
+            </div> -->
+            <img :src="info.goods_img?$cs.format_url(info.goods_img):''" class="banner">
+            <div class="top-btn">
+                <img src="./images/home/back.png" class="btn"  @click="$cs.closeWin('./mine.html')">
+                <img src="./images/home/share.png" class="btn" @click="is_share = !is_share">
+            </div>
+            <div class="assemble-price">
+                <div class="left">
+                    <div class="price"> 
+                        <span class="size-12">¥</span> 
+                        <span>{{info.goods_amount}}</span>
+                        <span class="mark">¥0</span>
+                    </div>
+                    <!-- <div> <span class="store">已拼购{{info.team_num}}件</span></div> -->
+                </div>
+                <div class="right">
+                    <span class="c-app size-12 mr-5">距结束</span> 
+                    <p class="time" v-html="now_time_show"></p>
+                </div>
+            </div>
+            <div class="assemble-content">
+                <div class="c-black size-16">{{info.goods_title}}</div>
+                <div class="list-tab">
+                    <span class="label">发团人:</span>
+                    <span class="flex-st">
+                        <img :src="info.cap_head_portrait?$cs.format_url(info.cap_head_portrait):'./images/head.png'" class="head" onerror="this.src='./images/head.png'">
+                        <span>{{info.cap_username}}</span>
+                    </span>
+                </div>
+                <div class="list-tab">
+                    <span class="label">人数限定:</span>
+                    <span>{{info.total_num}}人</span>
+                </div>
+                <div class="list-tab">
+                    <span class="label">参团人员:</span>
+                    <span class="team-list" v-if="team_list">
+                        <img :src="item.head_portrait?$cs.format_url(item.head_portrait):'./images/head.png'" onerror="this.src='./images/head.png'" class="head" v-for="item in team_list">
+                    </span>
+                    <span @click="is_team_show = !is_team_show">共{{team_list.length}}人></span>
+                </div>
+            </div>
+            <div class="goods-desc pt-10" style="margin-bottom:1.2rem;">
+                <div class="assemble-rule">
+                    <div class="s_title">发团规格说明</div>
+                    <p class="mt-5">1.团长和团长收益:团长是拥有发团资格的人,每次成功开团,均可获得{{info.goods_amount*0.1}}元奖励;</p>
+                    <p class="mt-5">2.拼团时间及人数:团长设置时间{{limit_time_low}}-{{limit_time_high}}分钟和{{limit_low}}-{{limit_high}}人,达到设定的时间或者达到设定人数,即成功开团;</p>
+                    <p class="mt-5">3.拼中会员能得到{{info.goods_amount}}面值积分,同时奖励与积分等值的众利豆,未拼中会员则随机分配拼团金额的10%.</p>
+                    
+                </div>
+                <div class="title">
+                    <span class="desc">商品详情</span>
+                </div>
+               
+                <div class="p-10 assemble-detail">
+                   <div class="content">
+                        <h3>积分卡使用说明</h3>
+                        <div>1、团长每次以{{info.goods_amount}}积分发团,拼会员每次获得1张积分卡;</div>
+                        <div>2、拥有积分卡的会员可在兑购商城兑换产品,余额可以按商品价值任意支付,也可累计金额</div>
+                   </div>
+                </div>
+            </div>
+            <div id="btnOpen">
+                <div class="goods-bom-buy" v-if="info.is_cap != 1">
+                    <div class="btn-app">{{  info.is_join==1 ?'正在拼团中': (info.is_end == 0?'立即购买':'拼团已结束') }}</div>
+                </div>
+            </div>
+            
+        </main>
+        
+        <!-- 自定义弹出菜单结构	 -->
+        <div id="actionsheet" class="bui-actionsheet actionsheet-custom" style="display: none">
+            <div class="screen-goods-wrap">
+                <div class="close-btn" id="dialog_close"><img src="./images/icon/fa-close.png" alt=""></div>
+                <div class="top">
+                    <img :src="info.goods_img?$cs.format_url(info.goods_img):''" class="goods-image mr-10">
+                    <div class="content">
+                        <div class="c-app"><span>¥</span> <span class="price">{{info.goods_amount}}</span></div>
+                        <!-- <p class="size-12">剩余 {{info.stock}} 件</p> -->
+                        <p class="size-12">已选 规格</p>
+                    </div>
+                </div>
+                <div class="middle" v-if="info.is_guige==1">
+                    <div class="mb-10 size-14">规格名称</div>
+                    <div class="spec active" >
+                        <img :src="info.goods_img?$cs.format_url(info.goods_img):''" class="goods-image">
+                        <span>规格</span>
+                    </div>
+                </div>
+                <div class="bottom">
+                    <div class="size-12">购买数量</div>
+                    <div>
+                        <span class="c-red size-12">(限购1件)</span>
+                        <span class="icon">-</span>
+                        <span class="icon">1</span>
+                        <span class="icon">+</span>
+                    </div>
+                </div>
+                <div class="btn-app" @click="buy_now()">立即拼团</div>
+            </div>
+        </div>
+        <!-- 自定义弹出菜单结构	 -->
+        <div class="action_share" v-show="is_share">
+            <div class="share">
+                <div class="txt-rt mb-10">
+                    <img src="./images/icon/share.png" class="arrow">
+                </div>
+                <div class="txt-ct">点击右上角,分享给朋友/群聊</div>
+            </div>
+            <div class="mb-30" @click="is_share = !is_share"><span class="close-btn">关闭此弹窗</span></div>
+        </div>
+        <!-- 自定义弹出菜单结构	 -->
+        <div class="team_screen_page" v-if="is_team_show">
+            <div class="team_wrap">
+                <div class="title">参团成员信息列表</div>
+                <ul v-if="team_list.length !=0">
+                    <li class="list" v-for="item in team_list">
+                        <span style="width:36%;" class="txt-ct flex flex-jus-st">
+                            <img :src="item.head_portrait?$cs.format_url(item.head_portrait):'./images/head.png'" class="head" onerror="this.src='./images/head.png'">
+                            <span>{{item.username}}</span>
+                        </span>
+                        <span class="txt-ct" style="width:32">{{item.phone.substr(0,4)+'****'+ item.phone.substr(-1,3)}}</span>
+                        <span class="txt-ct" style="width:32%">众利豆: <span class="c-red">{{item.get_amount?item.get_amount:'0.00'}}</span></span>
+                    </li>
+                </ul>
+            </div>
+            <div class="close-btn" @click="is_team_show = !is_team_show">
+                <img src="./images/icon/close-screen.png" alt="">
+            </div>
+        </div>
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    id:"",
+                    info:{},
+                    team_list:[],
+                    guige_id:"",
+                    guige_name:'',
+                    now_price:"",
+                    is_share:false,
+                    is_team_show:false,
+                    now_time_show:"",
+                    limit_low:"",
+                    limit_high:"",
+                    limit_time_high:"",
+                    limit_time_low :""
+                },
+
+                mounted() {
+                    this.id = $cs.format_params().id
+                    this.getTeamInfo()
+                    this.getData()
+                    this.dialog()
+
+                },
+                methods: {
+                    getTeamInfo(){
+                        var _this = this;
+                        $cs.ajax('Cooperative_purchase/CooperativeInfo',{},function(ret){
+                            if(ret.success){
+                                _this.limit_low = ret.data.limit_low;
+                                _this.limit_high = ret.data.limit_high
+                                _this.limit_time_low = ret.data.limit_time_low;
+                                _this.limit_time_high = ret.data.limit_time_high
+                            }
+                        })
+                    },
+                     //自定义弹出菜单初始化
+                    dialog(){
+                        var _this = this
+                        var dialog = bui.dialog({
+                            id: "#actionsheet",
+                            position:"bottom",
+                            effect:"fadeInUp",
+                            onMask: function (argument) {
+                                dialog.close();
+                            }
+                        });
+                        $('#btnOpen').on("click",function (argument) {
+                            if(_this.info.is_cap != 1){
+                                if(_this.info.is_join != 1 ){
+                                    if(_this.info.is_end == 0){
+                                        dialog.open();
+                                    }
+                                }
+                            }
+                            
+                        })
+                        $('#dialog_close').on('click',function(argument){
+                            dialog.close()
+                        })
+                       
+                    },
+                    
+                    getData(){
+                        var _this = this;
+                        $cs.ajax('Cooperative_purchase/orderDetail',{id : this.id},function(ret){
+                            if(ret.success){
+                                _this.info = ret.data
+                                _this.team_list = ret.data.users
+                                _this.timeCount()
+                            }
+                        })
+                    },
+                    choose_guige(id,index){
+                        this.guige_id = id;
+                        this.guige_name = this.info.guige_list[index]['guige_name']
+                        this.now_price = this.info.guige_list[index]['price']
+                    },
+                    buy_now(){
+                        
+                        window.location.href="./assemble_goods_confirm.html?id="+this.id
+                        $cs.setStorage('assemble_json',this.info)
+                        
+                    },
+                    timeCount(){
+                        var _this = this;
+                        _this.interval = setInterval(function(){
+                            _this.change_time()
+                        },1000)
+                    },
+                    change_time(){
+                        var _this = this
+                       this.now_time_show = this.format_time(this.info)
+                        this.$forceUpdate();  //必须加上，不然页面不刷新
+                    },
+
+                    format_time(item){
+                        var _this = this;
+                        var ctime = (new Date()).getTime()/1000;
+                        if(item.is_end == 0){
+                            if(item.end_time){
+                                var etime = (new Date(item.end_time.replace(/-/g,'/'))).getTime()/1000;
+                                var length = etime - ctime;
+                                if(length>0){
+                                    var a = _this.timestampToTime(length);
+                                    return a;
+                                }else{
+                                    this.getData()
+                                    return '<span>00</span> <span>00</span> <span>00</span>';
+                                }
+                            }
+                           
+                        }
+                        if(item.is_end == 1){
+                            return '<span>00</span> <span>00</span> <span>00</span>'
+                        }
+                    },
+
+                    timestampToTime(length_t) {
+                        var t =''
+                        //天数
+                        var days = Math.floor(length_t / (60 * 60 * 24));
+                        //取模（余数）
+                        var modulo = length_t % (60 * 60 * 24);
+                        //小时数
+                        var hours = Math.floor(modulo / (60 * 60));
+                        hours= hours<10 ? '0'+hours:hours;
+                            modulo = modulo % (60 * 60);
+                        //分钟
+                        var minutes = Math.floor(modulo / 60);
+                            minutes= minutes<10 ? '0'+minutes:minutes;
+                        //秒
+                        var seconds =Math.floor(modulo % 60) ;
+                        seconds= seconds<10 ? '0'+seconds:seconds;
+                        //输出到页面
+                        // t = days +'天'+ hours+'时'+minutes+'分'+seconds +'秒'
+                       t ='<span>'+hours+'</span> '+'<span>'+minutes+'</span> '+'<span>'+seconds+'</span>'
+                        return  t;
+                    },
+                
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+       /* .btn-edit{
+           position: fixed;
+           bottom: 0.4rem;
+           left: 5%;
+       }
+       .btn-red{
+           position: fixed;
+           bottom: 0.4rem;
+           left: 5%;
+       } */
+       .bui-dialog-bottom{
+           border-top-left-radius: 0.4rem;
+           border-top-right-radius: 0.4rem;
+       }
+       .bui-dialog .bui-dialog-head{
+           min-height: 0.8rem;
+           line-height: 0.8rem;
+           font-size: 0.36rem;
+           font-weight: bold;
+       }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left" @click="closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">{{id?'修改':'新增'}}收货地址</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main class="address-page size-14" v-cloak>
+            <ul class="bui-list line-b">
+                <li class="bui-btn bui-box">
+                    <div class="bui-label">收货人:</div>
+                    <div class="span1">
+                        <input type="text" placeholder="请填写收货人姓名" v-model="name">
+                    </div>
+                </li>
+                <li class="bui-btn bui-box clearactive">
+                    <div class="bui-label">所在地区</div>
+                    <div class="span1">
+                        <div id="chooseCity" class="bui-box">
+                            <div class="selected-val" v-text="province"></div>
+                            <div class="selected-val" v-text="city"></div>
+                            <div class="selected-val" v-text="area"></div>
+                        </div>
+                    </div>
+                </li>
+                <li class="bui-btn bui-box ">
+                    <div class="bui-label">手机号:</div>
+                    <div class="span1">
+                        <input type="number" placeholder="请填写收货人手机号" v-model="mobile">
+                    </div>
+                </li>
+            </ul>
+            <ul class="form-list">
+                <li class="form-textarea">
+                    <div class="label">详细地址:</div>
+                    <textarea name="" placeholder="请填写详细地址,如天目山路48号西湖大厦201室" v-model="address"></textarea>
+                </li>
+                <!-- <li class="set-default" @click="change()">
+                    <i :class="['fa', {'fa-sel':is_default == 0},{'fa-on-sel':is_default == 1}]"></i>
+                    <span>设置默认收货地址</span>
+                </li> -->
+            </ul>
+            <div class="btn-app btn-edit mt-50" @click="save()">{{id?'编辑':'保存'}}</div>
+            <div class="btn-app btn-red mt-10" v-if="id"  @click="del_event()">删除</div>
+        </main>
+       
+
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/citys.js"></script>
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    is_login:"",
+                    citySelect:"",
+                    area : '',
+                    city : '',
+                    province : '',
+                    address:"",
+                    name:"",
+                    mobile:"",
+                    id:"",
+                    on_disable:false,
+                    is_default : 0
+                },
+
+                mounted() {
+                    var param = $cs.format_params()
+                    if(param){
+                        this.id = param.id
+                    }
+                   
+                    // 绑定数据
+                    var _this = this;
+                    _this.$nextTick(function(){
+                        _this.citySelect = bui.levelselect({
+                            data: citys,
+                            title: "配送至",
+                            log: true,
+                            trigger: ".selected-val",
+                            level: 3,
+                            field: {
+                                name: "n",
+                                data: ["c", "a"],
+                            },
+
+                        })
+                        $("#chooseCity").on("click", function() {
+                            _this.citySelect.show();
+                        })
+                    })
+                    this.getDetail()
+                    
+                },
+                methods: {
+                    
+                    closeWin(){
+                        location.replace('./address_list.html')
+                    },
+                    del_event(){
+                        var _this = this;
+                        $cs.ajax('addr/delAddr',{id : this.id} , function(ret){
+                            if(ret.success){
+                                $cs.msg(ret.data || '删除成功')
+                                setTimeout(function(){
+                                   _this.closeWin()
+                                },1000)
+                            }else{
+                                $cs.msg(ret.message || '删除失败')
+                            }
+                        })
+                    },
+                    getDetail(){
+                        if(this.id){
+                            var _this = this;
+                            $cs.ajax('addr/addrDetail',{id : this.id},function(ret){
+                                
+                                if(ret.success){
+                                    _this.address = ret.data.address
+                                    _this.province = ret.data.province
+                                    _this.city = ret.data.city
+                                    _this.area = ret.data.area
+                                    _this.name = ret.data.name
+                                    _this.mobile = ret.data.mobile
+                                    _this.is_default = ret.data.is_default
+                                }
+                            })
+                        }
+                    },
+                    change(){
+                        this.is_default = this.is_default==0?'1':'0'
+                    },
+                    save(){
+                        var _this = this;
+                        var citys = this.citySelect.value();
+                        if(citys[0]){
+                            this.province = citys[0].value;
+                            this.city = citys[1].value;
+                            this.area = citys[2].value;
+                        }
+                        if(this.on_disable) return;
+                        if( !this.name) return $cs.msg('请输入收货人姓名');
+                        if( !this.mobile) return $cs.msg('请输入收货人手机号');
+                        if( !this.address) return $cs.msg('请输入详细地址');
+                        if( !this.province) return $cs.msg('请选择所在地区');
+                        if( !this.city) return $cs.msg('请选择所在地区市级');
+                        if( !this.area) return $cs.msg('请选择所在地区区域');
+                        var params = {
+                            address : this.address,
+                            province : this.province,
+                            city : this.city,
+                            area : this.area,
+                            name : this.name,
+                            mobile : this.mobile,
+                            id : this.id
+                        }
+                        this.on_disable = true
+                        loading.show()
+                        $cs.ajax('addr/postAddr',params,function(ret){
+                            _this.on_disable = false
+                            loading.hide()
+                            if(ret.success){
+                                $cs.msg(ret.data || '操作成功')
+                                setTimeout(function(){
+                                   _this.closeWin()
+                                },1000)
+                            }else{
+                                $cs.msg(ret.message || '操作失败')
+                            }
+                        })
+                    }
+                
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

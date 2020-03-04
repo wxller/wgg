@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+        .bui-slide-main li img{
+            height: 100%;
+            /* object-fit: cover; */
+            width: 100%;
+        }
+        .bui-actionsheet{
+            border-top-left-radius: 0.4rem;
+            border-top-right-radius: 0.4rem;
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left" @click="closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">确认订单</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        <main class="goods-confirm-page" v-cloak>
+            <ul class="address-list">
+                <li class="item" v-show="address_info" @click="toAddress()">
+                    <i class="fa fa-address"></i>
+                    <div class="flex1">
+                        <div class=" rt-desc">
+                            <div class="desc">
+                                <div>{{address_info.name}} <span class="c-gray">{{address_info.mobile}}</span></div>
+                                <div class="mt-5">{{address_info.province}} {{address_info.city}} {{address_info.area}} {{address_info.address}}</div>
+                            </div>
+                            <div class="edit">编辑</div>
+                        </div>
+                    </div>
+                </li>
+                <li class="item txt-ct" v-if="!address_info" style="justify-content:center"  @click="toAddress()">
+                        <i class="fa fa-add-address"></i>请添加收货地址
+                </li>
+            </ul>
+            <div class="goods-list">
+                <img :src="thumb_img?$cs.format_url(thumb_img):'./images/home/goods.png'" alt="">
+                <div class="flex1 ml-10">
+                    <div>{{goods_info.goods_name}}</div>
+                    <div class="c-app mt-10">¥ {{goods_info.price}}</div>
+                    <div class="size-12 c-gray mt-5" v-if="guige_name">{{ guige_name }}</div>
+                </div>
+            </div>
+            <div class="p-10">
+                <ul class="bui-list">
+                    <li class="bui-btn bui-box">
+                        <div class="bui-label">商品金额</div>
+                        <div class="span1 txt-rt c-app">¥ {{now_price}}</div>
+                    </li>
+                    <li class="bui-btn bui-box" style="border-bottom:0">
+                        <div class="bui-label">备注</div>
+                        
+                    </li>
+                    <li class="bui-btn bui-box">
+                        <textarea placeholder="选填,填写对商品的需求" v-model="remark"></textarea>
+                    </li>
+                </ul>
+            </div>
+        </main>
+        <footer class="goods-bom-buy flex" >
+            <span class="c-app">¥ <span class="size-20">{{now_price}}</span></span>
+            <div class="btn-comfirm-buy" id="btnOpen" @click="buy_now()">使用积分支付</div>
+        </footer>
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    goods:{},
+                    goods_info:{},
+                    guige_name:"",
+                    now_price:"",
+                    id:"",
+                    guige_id:"",
+                    address_info:"",
+                    remark:"",
+                    thumb_img:""
+                },
+
+                mounted() {
+                    var goods_json = $cs.getStorage('goods_json')
+                    this.id = goods_json.goods_id
+                    this.goods_info = goods_json.info
+                    this.thumb_img = goods_json.thumb_img
+                    this.guige_name = goods_json.guige_name
+                    this.guige_id = goods_json.guige_id
+                    this.now_price = goods_json.now_price
+                    if($cs.getStorage('goods_address')){
+                       this.address_info =  $cs.getStorage('goods_address')
+                    }else{
+                        this.getDefaultAddr()
+                    }
+                    
+                },
+                methods: {
+                    // 
+                    toAddress(){
+                        $cs.toUrl('./address_list.html?type=confirm_page')
+                    },
+                    getDefaultAddr(){
+                        var _this =  this
+                        $cs.ajax('addr/getDefaultAddr',{},function(ret){
+                            if(ret.success){
+                                _this.address_info = ret.data
+                            }
+                        })
+                    },
+                    closeWin(){
+                        $cs.closeWin('./goods_detail.html?id='+this.id)
+                        $cs.setStorage('goods_json','')
+                        $cs.setStorage('goods_address','')
+                    },
+                    buy_now(){
+                        var _this = this
+                        if(!this.address_info) return $cs.msg('请选择收货地址');
+                        bui.confirm("是否消耗"+this.now_price+"积分购买?", function(e) {
+                            //this 是指点击的按钮
+                            var text = $(e.target).text();
+
+                            if (text == "确定") {
+                                _this.submit()
+                            }
+                            this.close()
+                        });
+                    },
+                    submit(){
+                        var address =this.address_info.province+this.address_info.city+this.address_info.area+this.address_info.address
+                        var goods_json = {"store_id":0,"goods_arr":[{"goods_id":this.id,"guige_id":this.guige_id,"num":1}]}
+                        var params = {
+                            name: this.address_info.name,
+                            phone: this.address_info.mobile,
+                            address: address,
+                            express_type:0,
+                            remark :this.remark,
+                            goods_json: JSON.stringify(goods_json)
+                        }
+                        $cs.ajax('order/submit',params,function(ret){
+                            if(ret.success){
+                                $cs.msg('下单成功')
+                               setTimeout(function() {
+                                    location.href='./order_win.html'
+                               }, 1000);
+                               $cs.setStorage('goods_address','')
+                               $cs.setStorage('goods_json','')
+                            }else{
+                                $cs.msg(ret.message || '操作失败')
+                            }
+                        })
+                    }
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

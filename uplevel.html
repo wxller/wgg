@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+        .bui-page>.main, .bui-page>main{
+            background-image: url('./images/mine/uplevel_bg.png');
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            background-position: 100% 100%;
+        }
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <main v-cloak>
+            <header class="bui-bar" style="background:transparent">
+                <div class="bui-bar-left" @click="$cs.closeWin()">
+                    <a class="bui-btn btn-back"><i class="icon-back"  style="color:#333"></i></a>
+                </div>
+                <div class="bui-bar-main"></div>
+                <div class="bui-bar-right">
+                    <a class="bui-btn"></a>
+                </div>
+            </header>
+           <div class="uplevel-page">
+                <div class="title"><span>团长介绍</span></div>
+                <ul class="intro">
+                    <li class="mt-5">A: 团长是唯一具有发团资格的人</li>
+                    <li class="mt-5">B: 每次成功开团获10元奖励</li>
+                    <li class="mt-5">C: 团长推荐团长,享受该团长发团金额的2%</li>
+                </ul>
+                <div class="sub_title">团长申请条件</div>
+                <ul class="intro2">
+                    <li class="">A: 需直推5人,团长成员达15人</li>
+                    <li class="mt-5">B: 向公司购买3000元团长礼包</li>
+                </ul>
+                <div class="btn-sure" @click="up_event()">点我立即成为团长</div>
+           </div>
+        </main>
+
+        
+    <!-- <footer>
+        <ul class="bui-nav">
+            <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./index.html')">
+                <i class="fa ft-home"></i>
+                <div class="span1">首页</div>
+            </li>
+            <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./assemble.html')">
+                <i class="fa ft-assemble"></i>
+                <div class="span1">拼购专区</div>
+            </li>
+            <li class="bui-btn bui-box-vertical active" >
+                <i class="fa ft-team-on"></i>
+                <div class="span1">团长中心</div>
+            </li>
+            <li class="bui-btn bui-box-vertical bui-btn-more " @click="$cs.toUrl('./mine.html')">
+                <i class="fa ft-mine"></i>
+                <div class="span1">我的</div>
+            </li>
+        </ul>
+    </footer> -->
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    is_login:"",
+                },
+
+                mounted() {
+                
+                    // 初始化
+                    var uiSlide = bui.slide({
+                        id:"#slide",
+                        height:380,
+                        autopage:true
+                    })
+                    
+                },
+                methods: {
+                    // 判断登录
+                    check_login(){
+                        this.is_login = $cs.getStorage('token')
+                        if( !this.is_login){
+                            location.href='./login.html'
+                        }
+                    },
+                    up_event(){
+                        var _this = this;
+                        $cs.ajax('Cooperative_purchase/isCaptain',{},function(ret){
+                            if(ret.success){
+                                window.location.href = "./captain_buy_gift.html"
+                            }else{
+                                bui.alert("不满足升级条件"+ret.message);
+                            }
+                        })
+                       
+                    }
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

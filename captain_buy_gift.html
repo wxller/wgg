@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+       
+        .bui-slide{
+            width: 95%;
+            margin: 0 auto;
+            margin-top: 0.2rem;
+        }
+        .bui-slide-main li img{
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left" @click="$cs.closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">礼品中心</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main class="home-page" v-cloak>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-head"></div>
+                <div class="bui-scroll-main" style="background:transparent">
+            
+                    <ul class="goods-list">
+                        <li class="goods-item" v-for="item in dataList" @click="toDetail(item.id)">
+                            <div class="box">
+                                <img :src="item.images.length>0?$cs.format_url(item.images[0]):''" class="imgs">
+                                <div class="desc">
+                                    <div class="title">{{item.goods_name}}</div>
+                                    <div class="price ft-bold">¥{{item.price}} 众利券</div>
+                                </div>
+                            </div>
+                        </li>
+                       
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    uiScroll:"",
+                    dataList:[]
+                },
+
+                mounted() {
+                
+                    this.init_buiScroll()
+                },
+                methods: {
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.pullrefresh({
+                            id: "#scroll",
+                            onRefresh: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList() {
+                        var _this = this;
+                       
+                        loading.show();
+                        $cs.ajax('Cooperative_purchase/captainGift',{}, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                // console.log(ret.data)
+                                _this.dataList = ret.data;
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                     // 商品详情
+                     toDetail(id){
+                        location.href = './goods_detail.html?id='+id
+                    },
+                
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

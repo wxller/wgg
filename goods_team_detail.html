@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+        .bui-slide-main li img{
+            height: 100%;
+            /* object-fit: cover; */
+            width: 100%;
+        }
+        .bui-actionsheet{
+            border-top-left-radius: 0.4rem;
+            border-top-right-radius: 0.4rem;
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <main class="goods-detail-page" v-cloak>
+            <div id="slide" class="bui-slide">
+                <div class="bui-slide-main">
+                    <ul>
+                        <li>
+                            <img src="./images/home/goods.png" alt="">
+                        </li>
+                        <li style="display:none">
+                            <img src="./images/home/goods.png" alt="">
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="top-btn">
+                <img src="./images/home/back.png" class="btn" @click="$cs.closeWin()">
+                <img src="./images/home/share.png" class="btn">
+            </div>
+            <div class="goods-content">
+                <div class="c-app">
+                    <span class="size-14">¥</span>
+                    <span class="price">15153</span>
+                    <span class="size-14">积分</span>
+                </div>
+                <div class="mt-10">标题标题标题标题标题标题标题标题标题标题</div>
+            </div>
+            <div class="goods-desc">
+                <div class="title">
+                    <span class="desc">商品详情</span>
+                </div>
+                <div class="mt-5">
+                    <img src="./images/home/goods-tips.png" alt="">
+                </div>
+                <div class="p-10">
+                    详情
+                </div>
+            </div>
+        </main>
+        <footer class="goods-bom-buy" >
+            <div class="btn-app" id="btnOpen">立即购买</div>
+        </footer>
+        <!-- 自定义弹出菜单结构	 -->
+        <div id="actionsheet" class="bui-actionsheet actionsheet-custom" style="display: none">
+            <div class="screen-goods-wrap">
+                <div class="close-btn" id="dialog_close"><img src="./images/icon/fa-close.png" alt=""></div>
+                <div class="top">
+                    <img src="./images/home/goods.png" class="goods-image">
+                    <div class="content">
+                        <div class="c-app"><span>¥</span> <span class="price">436.00</span></div>
+                        <p>剩余 3933 件</p>
+                        <p>已选 规格</p>
+                    </div>
+                </div>
+                <div class="middle">
+                    <div class="mb-10">规格名称</div>
+                    <div class="spec">
+                        <img src="./images/home/goods.png" class="goods-image">
+                        <span>规格</span>
+                    </div>
+                </div>
+                <div class="bottom">
+                    <div>购买数量</div>
+                    <div>
+                        <span class="c-red">(限购1件)</span>
+                        <span class="icon">-</span>
+                        <span class="icon">1</span>
+                        <span class="icon">+</span>
+                    </div>
+                </div>
+                <div class="btn-app" @click="buy_now()">立即购买</div>
+            </div>
+        </div>
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    is_login:"",
+                    id:"",
+
+                },
+
+                mounted() {
+                    this.id = $cs.format_params().id
+                    // 初始化
+                    var uiSlide = bui.slide({
+                        id:"#slide",
+                        height:480,
+                        autopage:true
+                    })
+                    
+                     //自定义弹出菜单初始化
+                    var dialog = bui.dialog({
+                            id: "#actionsheet",
+                            position:"bottom",
+                            effect:"fadeInUp",
+                            onMask: function (argument) {
+                                dialog.close();
+                            }
+                        });
+                    
+                    $('#btnOpen').on("click",function (argument) {
+                        dialog.open();
+                    })
+                    $('#dialog_close').on('click',function(argument){
+                        dialog.close()
+                    })
+
+                },
+                methods: {
+                    // 判断登录
+                    check_login(){
+                        this.is_login = $cs.getStorage('token')
+                        if( !this.is_login){
+                            location.href='./login.html'
+                        }
+                    },
+                    buy_now(){
+                        window.location.href="./goods_confirm.html?id="+this.id
+                    }
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

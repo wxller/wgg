@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    .bui-slide{
+        min-height: 200px;
+        background: #fff;
+    }
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+        .bui-slide-main li img{
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .bui-actionsheet{
+            border-top-left-radius: 0.4rem;
+            border-top-right-radius: 0.4rem;
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <main class="goods-detail-page" v-cloak>
+            <div id="slide" class="bui-slide" >
+                <div class="bui-slide-main">
+                    <ul>
+                        <li v-for="item in bannerData">
+                            <img :src="item?$cs.format_url(item):'./images/home/banner.png'" alt="">
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="top-btn">
+                <img src="./images/home/back.png" class="btn" @click="$cs.closeWin('./index.html')">
+                <img src="./images/home/share.png" class="btn" @click="is_share = !is_share">
+            </div>
+            <div class="goods-content">
+                <div class="c-app">
+                    <span class="size-14">¥</span>
+                    <span class="price">{{info.price}}</span>
+                    <span class="size-14">积分</span>
+                </div>
+                <div class="mt-10">{{info.goods_name}}</div>
+            </div>
+            <div class="goods-desc">
+                <div class="title">
+                    <span class="desc">商品详情</span>
+                </div>
+                <div class="mt-5">
+                    <img src="./images/home/goods-tips.png" alt="">
+                </div>
+                <div class="p-10" v-html="info.detail"></div>
+            </div>
+        </main>
+        <footer class="goods-bom-buy" >
+            <div class="btn-app" id="btnOpen">立即购买</div>
+        </footer>
+        <!-- 自定义弹出菜单结构	 -->
+        <div id="actionsheet" class="bui-actionsheet actionsheet-custom" style="display: none">
+            <div class="screen-goods-wrap">
+                <div class="close-btn" id="dialog_close"><img src="./images/icon/fa-close.png" alt=""></div>
+                <div class="top">
+                    <img :src="thumb_img?$cs.format_url(thumb_img):''" class="goods-image mr-10">
+                    <div class="content">
+                        <div class="c-app"><span>¥</span> <span class="price">{{now_price}}</span> <span></span></div>
+                        <p class="size-12">剩余 {{info.stock}} 件</p>
+                        <p class="size-12">已选 规格</p>
+                    </div>
+                </div>
+                <div class="middle" v-if="info.is_guige==1">
+                    <div class="mb-10 size-14">规格名称</div>
+                    <div :class="['spec',{'active':guige_id==item.id}]" v-for="(item,index) in info.guige_list" @click="choose_guige(item.id,index)">
+                        <!-- <img :src="info.images?$cs.format_url(info.images[0]):''" class="goods-image"> -->
+                        <span>{{item.guige_name}}</span>
+                    </div>
+                </div>
+                <div class="bottom">
+                    <div class="size-12">购买数量</div>
+                    <div>
+                        <span class="c-red size-12">(限购1件)</span>
+                        <span class="icon">-</span>
+                        <span class="icon">1</span>
+                        <span class="icon">+</span>
+                    </div>
+                </div>
+                <div class="btn-app" @click="buy_now()">立即购买</div>
+            </div>
+        </div>
+        <div class="action_share" v-show="is_share">
+            <div class="share">
+                <div class="txt-rt mb-10">
+                    <img src="./images/icon/share.png" class="arrow">
+                </div>
+                <div class="txt-ct">点击右上角,分享给朋友/群聊</div>
+            </div>
+            <div class="mb-30" @click="is_share = !is_share"><span class="close-btn">关闭此弹窗</span></div>
+        </div>
+
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    id:"",
+                    bannerData:[],
+                    info:{},
+                    thumb_img:'',
+                    guige_id:"",
+                    guige_name:'',
+                    now_price:"",
+                    is_share:false
+                },
+
+                mounted() {
+                    this.id = $cs.format_params().id
+                    this.getData()
+                    this.dialog()
+
+                },
+                methods: {
+                    
+                     //自定义弹出菜单初始化
+                    dialog(){
+                        var dialog = bui.dialog({
+                            id: "#actionsheet",
+                            position:"bottom",
+                            effect:"fadeInUp",
+                            onMask: function (argument) {
+                                dialog.close();
+                            }
+                        });
+                        
+                        $('#btnOpen').on("click",function (argument) {
+                            dialog.open();
+                        })
+                        $('#dialog_close').on('click',function(argument){
+                            dialog.close()
+                        })
+                    },
+                    
+                    getData(){
+                        var _this = this;
+                        $cs.ajax('goods/getGoodsDetail',{goods_id : this.id},function(ret){
+                                // console.log(ret)
+                            if(ret.success){
+                                _this.bannerData = ret.data.images.split(',')
+                                _this.thumb_img = _this.bannerData[0]
+                                _this.$nextTick(function(){
+                                    var uiSlide = bui.slide({
+                                        id:"#slide",
+                                        height:480,
+                                        autopage:true
+                                    })
+                                })
+                                _this.now_price = ret.data.price
+                                _this.info = ret.data
+                            }
+                        })
+                    },
+                    choose_guige(id,index){
+                        this.guige_id = id;
+                        this.guige_name = this.info.guige_list[index]['guige_name']
+                        this.now_price = this.info.guige_list[index]['price']
+                    },
+                    buy_now(){
+                        if(this.info.is_guige == 1){
+                            if(!this.guige_id) return $cs.msg('请选择规格');
+                        }
+                        $cs.toUrl('./goods_confirm.html')
+                        var goods_json = {
+                            "goods_id":this.id,
+                            "guige_id":this.guige_id,
+                            "guige_name":this.guige_name,
+                            "now_price":this.now_price,
+                            "num":1,
+                            "info":this.info,
+                            "thumb_img":this.thumb_img
+                        }
+                                
+                        $cs.setStorage('goods_json',goods_json)
+                        
+                    }
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

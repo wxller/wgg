@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+        .bui-slide-main li img{
+            height: 100%;
+            /* object-fit: cover; */
+            width: 100%;
+        }
+        .bui-actionsheet{
+            border-top-left-radius: 0.4rem;
+            border-top-right-radius: 0.4rem;
+        }
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left" @click="closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">确认订单</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        <main class="goods-confirm-page" v-cloak>
+            <ul class="address-list">
+                <li class="item" v-show="false" @click="$cs.toUrl('./address_list.html')">
+                    <i class="fa fa-address"></i>
+                    <div class="flex1">
+                        <div class=" rt-desc">
+                            <div class="desc">
+                                <div>花花 <span class="c-gray">135785738</span></div>
+                                <div class="mt-5">福建省福州市</div>
+                            </div>
+                            <div class="edit">编辑</div>
+                        </div>
+                    </div>
+                </li>
+                <li class="item txt-ct" style="justify-content:center"  @click="$cs.toUrl('./address_list.html')">
+                        <i class="fa fa-add-address"></i>请添加收货地址
+                </li>
+            </ul>
+            <div class="goods-list">
+                <img src="./images/home/goods.png" alt="">
+                <div class="flex1">
+                    <div>德国哈萨克噶德国哈萨克噶德国哈萨克噶</div>
+                    <div class="c-app mt-10">¥ 3523</div>
+                    <div class="size-12 c-gray mt-5">规格名称 规格</div>
+                </div>
+            </div>
+            <div class="p-10">
+                <ul class="bui-list">
+                    <li class="bui-btn bui-box">
+                        <div class="bui-label">商品金额</div>
+                        <div class="span1 txt-rt c-app">¥ 3523</div>
+                    </li>
+                    <li class="bui-btn bui-box" style="border-bottom:0">
+                        <div class="bui-label">备注</div>
+                        
+                    </li>
+                    <li class="bui-btn bui-box">
+                        <textarea placeholder="选填,填写对商品的需求"></textarea>
+                    </li>
+                </ul>
+            </div>
+        </main>
+        <footer class="goods-bom-buy flex" >
+            <span class="c-app">¥ <span class="size-20">3253</span></span>
+            <div class="btn-comfirm-buy" id="btnOpen" @click="buy_now()">使用积分支付</div>
+        </footer>
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    id:"",
+
+                },
+
+                mounted() {
+                    this.id = $cs.format_params().id
+                    
+
+                },
+                methods: {
+                    // 
+                    closeWin(){
+                        $cs.closeWin('./goods_team_detail.html?id='+this.id)
+                    },
+                    buy_now(){
+                        bui.confirm("是否消耗3253积分购买?", function(e) {
+                            //this 是指点击的按钮
+                            var text = $(e.target).text();
+
+                            if (text == "确定") {
+                                console.log("你点击了" + $(e.target).text())
+                            }
+                            this.close()
+                        });
+                    }
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

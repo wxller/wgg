@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/font-awesome.min.css" rel="stylesheet">
+    <link href="./css/animate.min.css" rel="stylesheet"> 
+    <link href="./css/reset.css" rel="stylesheet">  
+    <link href="./css/style.css" rel="stylesheet">  
+    <link href="./css/bui.css" rel="stylesheet">  
+    <style type="text/css">
+       body,html ,#app{
+           width: 100%;
+       }
+       .login-wrap .form-wrap .form-list .list .icon-phone-code{
+           position: relative;
+           display: flex;
+           align-items: center;
+       }
+       .u-select{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+        }
+        .icon-down{
+            content: "";
+            width: 0;
+            height: 0;
+            border-width: 10px;
+            border-style: solid;
+            border-color: transparent;
+            border-top-color: #777;
+            margin-top: 10px;
+            margin-left: 5px;
+        }
+    </style>
+</head> 
+
+<body>
+    <div id="app" v-cloak>
+        <!-- 页面 -->
+        <div class="container-fuid login-wrap">
+            <div class="row hidden-xs " style="height:100%">
+                <div class="col-sm-4 form-wrap form-wrap-sm">
+                    <img src="./images/logo.svg" class="logo">
+                    <div class="form-list">
+                        <div class="list">
+                            <span class="icon icon-phone-code">
+                                <span>+{{country_code}}</span><i class="icon-down"></i>
+                                <i class="u-select js_select" id="select"></i>
+                            </span>
+                            <input type="number" placeholder="手机号" v-model="phone">
+                        </div>
+                        <div class="list">
+                            <input type="text" placeholder="验证码" v-model="verify_code">
+                            <span class="icon-code" @click="getCode()">{{code_text}}</span>
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-user"></i></span>
+                            <input type="text" placeholder="昵称" v-model="username">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="(6-16位数字、字母组合)密码" v-model="password">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="确认密码" v-model="password1">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="(6位纯数字)交易密码" v-model="pay_password">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="确认交易密码" v-model="pay_password1">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-qrcode"></i></span>
+                            <input type="text" placeholder="邀请人推荐码（选填）" v-model="invite_code">
+                        </div>
+                        <div class="flex btn-to">
+                            <a href="./login.html">若已有账户，请登录</a>
+                        </div>
+                        <div class="btn-login" @click="on_register()">注册会员</div>
+                    </div>
+                </div>
+                <div class="col-sm-8 login-bg"></div>
+            </div>
+            <div class="visible-xs " style="height:100%">
+                <div class="">
+                    <img src="./images/login-bg.png" class="login-bg-xs" style="height:200px;width: 100%;">
+                </div>
+                <div class="form-wrap form-wrap-xs">
+                    <div class="txt-ct logo-wrap"><img src="./images/logo.svg" class="logo"></div>
+                    <div class="form-list"  style="margin-top:20px">
+                        <div class="list">
+                            <span class="icon icon-phone-code">
+                                <span>+{{country_code}}</span><i class="icon-down"></i>
+                                <i class="u-select js_select" id="select"></i>
+                            </span>
+                            <input type="number" placeholder="手机号" v-model="phone">
+                        </div>
+                        <div class="list">
+                            <input type="text" placeholder="验证码" v-model="verify_code">
+                            <span class="icon-code" @click="getCode()">{{code_text}}</span>
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-user"></i></span>
+                            <input type="text" placeholder="昵称" v-model="username">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="(6-16位数字、字母组合)密码" v-model="password">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="确认密码" v-model="password1">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="(6位纯数字)交易密码" v-model="pay_password">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-lock"></i></span>
+                            <input type="password" placeholder="确认交易密码" v-model="pay_password1">
+                        </div>
+                        <div class="list">
+                            <span class="icon"><i class="fa fa-qrcode"></i></span>
+                            <input type="text" placeholder="邀请人推荐码（选填）" v-model="invite_code">
+                        </div>
+                        <div class="flex btn-to">
+                            <a href="./login.html">若已有账户，请登录</a>
+                        </div>
+                        <div class="btn-login mb-20" @click="on_register()">注册会员</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+<script src="./js/jquery.js"></script>
+<script src="./js/bootstrap.min.js"></script> 
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+    // window.onload = function(){
+    //     init()
+    // }
+    init()
+    function init(){
+        var _vue = new Vue({
+                el: '#app',
+                data: {
+                    country_code:'86',
+                    country_data:{},
+                    code_text:'发送',
+                    isWaiting:false,
+                    on_disable:false,
+
+                    username:"",
+                    phone:"",
+                    verify_code:"",
+                    password:"",
+                    password1:"",
+                    pay_password:"",
+                    pay_password1:"",
+                    invite_code:"",
+
+                },
+
+                mounted() {
+                    if($cs.format_params()){
+                        this.invite_code = ($cs.format_params()).invite_code
+                    }
+                    this.choose_country()
+                },
+                methods: {
+                   // 区号
+                    choose_country(){
+                        var _this = this;
+                        
+                        $cs.ajax('login/countryList',{},function(ret){
+                            if(ret.success){
+                                var country_arr = [];
+                                var countrys = '';
+                                for(var i in ret.data){
+                                    countrys  = {
+                                        name: ret.data[i].country,
+                                        value: ret.data[i].mobile_prefix
+                                    };
+                                    country_arr.push(countrys)
+                                }
+                                var win_w = document.documentElement.clientWidth *0.8;
+                                _this.country_data = country_arr
+                                _this.$nextTick(function() {
+                                    var uiSelect = bui.select({
+                                        trigger: ".js_select",
+                                        title:  '请选择国家',
+                                        type: "radio",
+                                        effect: "fadeInLeft",
+                                        position: "center",
+                                        direction:"center",
+                                        height:'500',
+                                        width: win_w,
+                                        data: _this.country_data,
+                                        buttons: [],
+                                        callback: function(e) {
+                                            var text = $(e.target).text();
+                                            if (text == "重置") {
+                                                uiSelect.selectNone();
+                                            } else {
+                                                uiSelect.hide();
+                                            }
+                                        },
+                                        onChange: function(a) {
+                                            uiSelect.hide();
+                                            _this.country_code = uiSelect.value()
+                                            console.log(_this.country_code);
+                                            $('#select').html('')
+                                        }
+                                    })
+                                })
+                            }else{
+                                $cs.msg(ret.message)
+                            }
+                        })
+                    },
+                    // 获取验证码
+                    getCode(){
+                        var _this = this;
+                        if(!this.phone) return $cs.msg( '请输入手机号'  );
+                        if( this.isWaiting ) return;
+                        var params = {
+                            country_code : this.country_code,
+                            phone : this.phone,
+                            time : 120,
+                            type : 1
+                        }
+                        this.isWaiting = true;
+                        this.remainTime()
+                        $cs.ajax('login/getVerify',params,function(ret){
+                            if(ret.success){
+                                $cs.msg(ret.data)
+                            }else{
+                                $cs.msg(ret.message)
+                            }
+                        })
+                    },
+                    remainTime(){
+                        var _this = this;
+                        var time = 120;
+                        var interval = setInterval(function(){
+                            _this.code_text = (time--) + 's后重新获取';
+                            if( time < 0) {
+                                clearInterval(interval);
+                                _this.code_text = '发送';
+                                _this.isWaiting = false;
+                            }
+                        },1000)
+                    },
+                    // 注册
+                    on_register(){
+                        var _this = this;
+                        if(this.on_disable) return;
+                        
+                        if(!this.phone) return $cs.msg('请输入手机号');
+                        if(!this.verify_code) return $cs.msg('请输入验证码');
+                        if(!this.username) return $cs.msg('请输入昵称');
+                        if(!/^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,18}$/.test(this.password)) return $cs.msg( '请输入密码(6-18位数字、字母组合)'  );
+                        if(this.password !== this.password1) return $cs.msg('请保持登录密码一致' )
+                        if( !/[0-9]{6}$/.test(this.pay_password)) return $cs.msg( '请输入交易密码(6位纯数)' );
+                        if(this.pay_password !== this.pay_password1) return $cs.msg('请保持交易密码一致' );
+                        if(!this.invite_code) return $cs.msg('请输入邀请码' )
+                        var params = {
+                            phone :  this.phone,
+                            verify_code :  this.verify_code,
+                            username :  this.username,
+                            password :  this.password,
+                            password1 :  this.password1,
+                            pay_password :  this.pay_password,
+                            pay_password1 :  this.pay_password1,
+                            country_code : this.country_code,
+                            invite_code : this.invite_code
+                        }
+
+                        this.on_disable = true;
+                        $cs.ajax('login/register',params , function(ret){
+                            _this.on_disable = false;
+                            if(ret.success){
+                                $cs.msg(ret.data || '注册成功' )
+                                setTimeout(function(){
+                                    location.href = './login.html'
+                                },1000)
+                            }else{
+                                $cs.msg(ret.message )
+                            }
+                        })
+                    }
+                },
+            });
+    }
+</script>
+</body>
+</html>

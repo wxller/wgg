@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+       .bui-slide-head ul li{
+           width: 10px;
+           height: 1px;
+       }
+       .btn-app{
+           position: fixed;
+           bottom: 0.2rem;
+           left: 5%;
+       }
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left" @click="closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">收货地址</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main class="address-page" v-cloak>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-head"></div>
+                <div class="bui-scroll-main" style="background:transparent">
+            
+                    <ul class="address-list bui-list size-14">
+                        <li class="item" v-for="(item,index) in dataList" >
+                            <i :class="['fa', {'fa-check':item.is_default==0},{'fa-on-check':item.is_default==1} ,'mr-10']" @click.stop="setDefault(item.id)"></i>
+                            <div class="flex1">
+                                <div class="rt-desc">
+                                    <div class="desc" @click="choose_addr(index)">
+                                        <div>{{item.name}} <span class="c-gray">{{item.mobile}}</span></div>
+                                        <div class="mt-5">{{item.province}} {{item.city}} {{item.area}} {{item.address}}</div>
+                                    </div>
+                                    <div class="edit" @click="toDetail(item.id)">编辑</div>
+                                </div>
+                                <div class="c-app mt-5 size-12" v-if="item.is_default ==1 ">默认收货地址</div>
+                            </div>
+                        </li>
+                        
+                    </ul>
+                </div>
+            </div>
+            <div class="btn-app" @click="$cs.toUrl('./address_add.html')">新增收货地址</div>
+        </main>
+       
+
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    dataList:[],
+                    uiScroll:'',
+                    pageParam:{}
+                },
+
+                mounted() {
+                    if($cs.format_params()){
+                        $cs.setStorage('page_type',$cs.format_params().type)
+                        this.pageParam =  $cs.getStorage('page_type')
+                    }else{
+                        this.pageParam =  $cs.getStorage('page_type')
+                    }
+                    this.init_buiScroll()
+                    
+                },
+                methods: {
+                    
+                    closeWin(){
+                        if(this.pageParam && this.pageParam =='confirm_page'){
+                            $cs.setStorage('page_type','')
+                            location.replace('./goods_confirm.html')
+                        }else if(this.pageParam && this.pageParam =='assemble_confirm_page'){
+                            $cs.setStorage('page_type','')
+                            location.replace('./assemble_goods_confirm.html')
+                        }else{
+                            location.replace('./mine.html')
+                        }
+                    },
+                    choose_addr(index){
+                        if(this.pageParam && this.pageParam =='confirm_page'){
+                            $cs.setStorage('page_type','')
+                            location.replace('./goods_confirm.html')
+                            $cs.setStorage('goods_address',this.dataList[index])
+                        }else if(this.pageParam && this.pageParam =='assemble_confirm_page'){
+                            $cs.setStorage('page_type','')
+                            location.replace('./assemble_goods_confirm.html')
+                            $cs.setStorage('goods_address',this.dataList[index])
+                        }else{
+                            location.replace('./mine.html')
+                        }
+                        
+                    },
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.pullrefresh({
+                            id: "#scroll",
+                            onRefresh: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList() {
+                        var _this = this;
+                       
+                        loading.show();
+                        $cs.ajax('addr/getAddrList',{}, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                // console.log(ret.data)
+                                _this.dataList = ret.data;
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                    toDetail(id){
+                        $cs.toUrl('./address_add.html?id='+id)
+                    },
+                    setDefault(id){
+                        var _this = this;
+                       
+                        loading.show();
+                        $cs.ajax('addr/setDefaultAddr',{ id : id}, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                               $cs.msg(ret.data || '设置成功')
+                               window.location.reload(); 
+                            } else {
+                                $cs.msg(ret.message || '设置失败')
+                            }
+                        });
+                    }
+                
+                
+                },
+               
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

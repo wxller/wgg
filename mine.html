@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+     
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+      
+        <main class="mine-page" v-cloak>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-main" style="background:transparent">
+            
+            
+                    <div class="mine-top-head">
+                        <div class="top-btn">
+                            <i class="fa fa-set" @click="$cs.toUrl('./set.html')"></i>
+                            <i class="fa fa-msg"></i>
+                        </div>
+                        <div class="user-wrap">
+                            <img :src="info.head_portrait?$cs.format_url(info.head_portrait):'./images/head.png'" class="head-icon">
+                            <div class="rt-desc">
+                                <div class="username">
+                                    <span class="size-17">{{info.username}}</span>
+                                    <span class="level">{{info.level_name}}</span>
+                                </div>
+                                <div class="size-14">邀请码:{{info.invite_code}}</div>
+                                <div class="size-14 mt-5">手机号:{{info.phone}}</div>
+                            </div>
+                        </div>
+                        <img src="./images/mine/lank.png" class="lank_bg" @click="$cs.toUrl('./lank_list.html')"> 
+                    </div>
+                    <div class="list-asset">
+                        <div class="item" @click="$cs.toUrl('./mine_pub_coupon.html')">
+                            <p><span class="size-10">¥</span><span>{{info.ont_amount}}</span></p>
+                            <p>众利券</p>
+                        </div>
+                        <div class="item" @click="$cs.toUrl('./mine_pub_dou.html')">
+                            <p><span>{{info.two_amount}}</span></p>
+                            <p>众利豆</p>
+                        </div>
+                        <div class="item">
+                            <p><span>¥</span><span>{{info.earnings_amount}}</span></p>
+                            <p>今日收益</p>
+                        </div>
+                        <div class="item" @click="$cs.toUrl('./mine_pub_interal.html')">
+                            <p><span>{{info.three_amount}}</span></p>
+                            <p>积分</p>
+                        </div>
+                    </div>
+                    <div class="p-10" @click="$cs.toUrl('./share.html')"><img src="./images/mine/invite.png" alt=""></div>
+                    <div class="my-order">
+                        <div>我的订单</div>
+                        <div class="order-wrap">
+                            <div class="item" @click="$cs.toUrl('./order_win.html')">
+                                <img src="./images/mine/order.png" class="icon">
+                                <span>我的订单</span>
+                            </div>
+                            <div class="item" @click="$cs.toUrl('./order_team_win.html')">
+                                <img src="./images/mine/cart.png" class="icon">
+                                <span>我的拼团</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-app mt-20" @click="$cs.toUrl('./team_buy_list.html')">可参团列表</div>
+
+                    <div class="com-tools mb-10">
+                        <div>常用工具</div>
+                        <ul class="nav-tab">
+                            <li class="tab" @click="$cs.waiting()">
+                                <img src="./images/mine/member.png" alt="">
+                                <div>会员中心</div>
+                            </li>
+                            <li class="tab" @click="$cs.waiting()">
+                                <img src="./images/mine/collect.png" alt="">
+                                <div>商品收藏</div>
+                            </li>
+                            <li class="tab" @click="$cs.waiting()">
+                                <img src="./images/mine/service.png" alt="">
+                                <div>客服帮助</div>
+                            </li>
+                            <li class="tab" @click="$cs.toUrl('./address_list.html')">
+                                <img src="./images/mine/address.png" alt="">
+                                <div>地址管理</div>
+                            </li>
+                            <li class="tab" @click="$cs.waiting()">
+                                <img src="./images/mine/phones.png" alt="">
+                                <div>通讯录好友</div>
+                            </li>
+                            <li class="tab" @click="$cs.toUrl('./my_comunity.html')">
+                                <img src="./images/mine/comunity.png" alt="">
+                                <div>我的社区</div>
+                            </li>
+                            <li class="tab" @click="$cs.toUrl('./share.html')">
+                                <img src="./images/mine/share.png" alt="">
+                                <div>邀请好友</div>
+                            </li>
+                        </ul>
+                        
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        
+    <footer>
+        <ul class="bui-nav">
+            <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./index.html')">
+                <i class="fa ft-home"></i>
+                <div class="span1">首页</div>
+            </li>
+            <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./assemble.html')">
+                <i class="fa ft-assemble"></i>
+                <div class="span1">拼购专区</div>
+            </li>
+            <li class="bui-btn bui-box-vertical" @click="toCaptain()">
+                <i class="fa ft-team"></i>
+                <div class="span1">团长中心</div>
+            </li>
+            <li class="bui-btn bui-box-vertical bui-btn-more active" @click="$cs.toUrl('./mine.html')">
+                <i class="fa ft-mine-on"></i>
+                <div class="span1">我的</div>
+            </li>
+        </ul>
+    </footer>
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    uiScroll:"",
+                    info:{},
+                    is_captain:0
+                },
+
+                mounted() {
+                
+                    this.init_buiScroll()
+                   
+                    
+                },
+                methods: {
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.pullrefresh({
+                            id: "#scroll",
+                            children: ".bui-list",//循环遍历的数据的父层,如果不对,会出现无限滚动的情况
+                            page: 1,
+                            pageSize: 15,
+                            onRefresh: _this.refresh,
+                        });
+                    },
+                    refresh(){
+                        this.myInformation()
+                    },
+                    myInformation() {
+                        var _this = this;
+                       
+                        loading.show();
+                        $cs.ajax('Member/myInformation',{}, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                _this.info = ret.data;
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                    
+                    toCaptain(){
+                        var _this = this
+                        $cs.ajax('member/getUserDetail',{},function(ret){
+                            if(ret.success){
+                                if(ret.data.is_captain == 1){
+                                    $cs.toUrl('./uplevel_captain.html')
+                                }else{
+                                    $cs.toUrl('./uplevel.html')
+                                }
+                            }
+                        })
+                    }
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

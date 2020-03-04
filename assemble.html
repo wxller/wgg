@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+     .bui-actionsheet{
+        background: transparent;
+    }
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+        <header class="bui-bar">
+            <div class="bui-bar-left">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">拼团列表</div>
+            <div class="bui-bar-right">
+                <!-- <a class="bui-btn">菜单</a> -->
+            </div>
+        </header>
+        
+        <main v-cloak>
+            <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                <div class="bui-scroll-main" style="background:transparent;height: 100%;">
+                    <div class="assemble-page">
+                        <ul class="left-nav">
+                            <li :class="['nav-tab',{'active':now_classify==''}]" @click="change_classify('')"><p>全部</p></li>
+                            <li :class="['nav-tab',{'active':now_classify=='1'}]" @click="change_classify('1')"><p>积分专区</p></li>
+                        </ul>
+                        <div class="right-list">
+                            <div class="list-item" v-for="(item,index) in dataList">
+                                <img :src="item.goods_img?$cs.format_url(item.goods_img):''" alt="">
+                                <div class="flex1 pr-10">
+                                    <div class="size-14 mb-10">{{item.goods_title}}</div>
+                                    <div class="flex">
+                                        <span class="c-app">
+                                            <span class="size-10">¥</span>
+                                            <span class="price">{{item.goods_amount}}</span>
+                                            <span class="size-10 c-gray ft-line">¥ {{item.market_amount}}</span>
+                                        </span>
+                                        <span class="send-btn" @click="buy_send(index)">发团</span>
+                                    </div>
+                                </div>
+                            </div>
+                           
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </main>
+<!-- 自定义弹出菜单结构	 -->
+    <div id="actionsheet" class="bui-actionsheet actionsheet-custom screen-assemble-page" style="display: none;">
+        <div class="screen-assemble-wrap" >
+            <div class="wrap">
+                <div class="left">
+                    <img :src="now_goods_json.goods_img?$cs.format_url(now_goods_json.goods_img):''" alt="">
+                </div>
+                <div class="right">
+                    <p>{{now_goods_json.goods_title}}</p>
+                    <p class="c-app mt-10 txt-rt">¥ {{now_goods_json.goods_amount}}</p>
+                </div>
+            </div>
+            <div class="list" v-if="is_captain == 1">
+                <div class="item">开团时间 <input type="number" :placeholder='limit_time_low+"-"+limit_time_high' v-model="time_l"> 分钟</div>
+                <div class="item">参团人数 <input type="number" placeholder="1" v-model="number"> ({{limit_low}}~{{limit_high}}人))</div>
+            </div>
+            <div class="btn-sure" v-if="is_captain == 1" @click="createTeam()">确认发团</div>
+            <div class="list-nolevel " v-if="is_captain == 0">无团长权限</div>
+            <div class="btn-sure" v-if="is_captain == 0" @click="$cs.toUrl('./uplevel.html')">成为团长</div>
+        </div>
+        <div class="close-btn dialog_close" >
+            <i class="fa fa-close-screen"></i>
+        </div>
+    </div>
+        
+    <footer>
+        <ul class="bui-nav">
+            <li class="bui-btn bui-box-vertical" @click="$cs.toUrl('./index.html')">
+                <i class="fa ft-home"></i>
+                <div class="span1">首页</div>
+            </li>
+            <li class="bui-btn bui-box-vertical active" @click="">
+                <i class="fa ft-assemble-on"></i>
+                <div class="span1">拼购专区</div>
+            </li>
+            <li class="bui-btn bui-box-vertical" @click="toCaptain()">
+                <i class="fa ft-team"></i>
+                <div class="span1">团长中心</div>
+            </li>
+            <li class="bui-btn bui-box-vertical bui-btn-more " @click="$cs.toUrl('./mine.html')">
+                <i class="fa ft-mine"></i>
+                <div class="span1">我的</div>
+            </li>
+        </ul>
+    </footer>
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    uiScroll:"",
+                    dialog:"",
+                    is_captain:0,
+                    dataList:[],
+                    now_send_index:'',
+                    now_goods_json:{},
+                    limit_low:"",
+                    limit_high:"",
+                    limit_time_low:"",
+                    limit_time_high:"",
+                    on_disable:false,
+                    number:'',
+                    time_l:"",
+                    now_classify:""
+                },
+
+                mounted() {
+                
+                   
+                    this.dialog_event()
+                    this.init_buiScroll()
+
+                },
+                methods: {
+                    change_classify(type){
+                        this.now_classify =type
+                    },
+                    //自定义弹出菜单初始化
+                    dialog_event(){
+                         var _this = this
+                        _this.dialog = bui.dialog({
+                            id: "#actionsheet",
+                            position:"center",
+                            effect:"fadeInDown",
+                            onMask: function (argument) {
+                                _this.dialog.close();
+                            }
+                        });
+                        
+                        $('.dialog_close').on('click',function(argument){
+                            _this.dialog.close()
+                        })
+                    },
+                    buy_send(index){
+                        this.now_send_index = index;
+                        this.now_goods_json = this.dataList[index]
+                        this.dialog.open();
+
+                    },
+                    // 发团
+                    createTeam(){
+                        var _this = this;
+                        if(this.on_disable) return;
+                        if( Number(this.time_l)< Number(this.limit_time_low) || Number(this.time_l) > Number(this.limit_time_high) ) return $cs.msg('开团时间必须'+this.limit_time_low+'-'+this.limit_time_high+'之间');
+                        if( ( Number(this.number) < Number(this.limit_low) ) || ( Number(this.number) > Number(this.limit_high) ) )  return $cs.msg('开团人数必须大于'+this.limit_low
+                        +'并且小于'+this.limit_high)
+                        var params = {
+                            id : this.dataList[this.now_send_index]['id'],
+                            num : this.number,
+                            time : this.time_l
+                        }
+                        $cs.ajax('Cooperative_purchase/createCooperative',params,function(ret){
+                            if(ret.success){
+                                $cs.msg('发团成功')
+                                setTimeout(() => {
+                                    window.location.href = './order_team_win.html'
+                                }, 1000);
+                            }else{
+                                $cs.msg(ret.message || '发团成功')
+                            }
+                        })
+                    },
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.pullrefresh({
+                            id: "#scroll",
+                            children: ".bui-list",//循环遍历的数据的父层,如果不对,会出现无限滚动的情况
+                            page: 1,
+                            pageSize: 15,
+                            onRefresh: _this.refresh,
+                        });
+                    },
+                    refresh(){
+                        this.getUserDetail()
+                        this.getList()
+                        this.getTeamInfo()
+                    },
+                    getTeamInfo(){
+                        var _this = this;
+                        $cs.ajax('Cooperative_purchase/CooperativeInfo',{},function(ret){
+                            if(ret.success){
+                                _this.limit_low = ret.data.limit_low;
+                                _this.limit_high = ret.data.limit_high
+                                _this.limit_time_low = ret.data.limit_time_low;
+                                _this.limit_time_high = ret.data.limit_time_high
+                            }
+                        })
+                    },
+                    getUserDetail(){
+                        var _this = this
+                        $cs.ajax('member/getUserDetail',{},function(ret){
+                            if(ret.success){
+                                _this.is_captain = ret.data.is_captain
+                                _this.uiScroll.reverse()
+                            }
+                        })
+                    },
+                    toCaptain(){
+                        var _this = this
+                        $cs.ajax('member/getUserDetail',{},function(ret){
+                            if(ret.success){
+                                _this.is_captain = ret.data.is_captain
+                                if(ret.data.is_captain == 1){
+                                    $cs.toUrl('./uplevel_captain.html')
+                                }else{
+                                    $cs.toUrl('./uplevel.html')
+                                }
+                            
+                                _this.uiScroll.reverse()
+                            }
+                        })
+                    },
+                    // 列表
+                    getList(){
+                        var _this = this
+                        loading.show();
+                        $cs.ajax('cooperative_purchase/purchasList',{}, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                _this.dataList = ret.data;
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    }
+                
+                },
+                computed: {
+                    
+                },
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>

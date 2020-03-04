@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="./css/bui.css" rel="stylesheet"> 
+    <link href="./css/style.css" rel="stylesheet"> 
+    <style type="text/css">
+    .bui-page>.main, .bui-page>main{
+        /* background: #fff; */
+    }
+    
+        
+    </style>
+</head> 
+
+<body>
+    <div class="bui-page" id="app">
+           
+        <header class="bui-bar" >
+            <div class="bui-bar-left" @click="$cs.closeWin()">
+                <a class="bui-btn btn-back"><i class="icon-back"></i></a>
+            </div>
+            <div class="bui-bar-main">余额明细</div>
+            <div class="bui-bar-right">
+                <a class="bui-btn"></a>
+            </div>
+        </header>
+        
+        <main v-cloak>
+           <div class="pub-page">
+               <div class="bui-scroll" id="scroll" style="overflow-x:hidden">
+                    <div class="bui-scroll-head"></div>
+                    <div class="bui-scroll-main" style="background:transparent">
+                 
+                         <div class="list-item-record" v-for="item in dataList">
+                             <div class="item">
+                                 <span>{{item.remark}}</span>
+                                 <span>{{item.amount}}</span>
+                             </div>
+                             <div class="date">{{item.update_time}}</div>
+                        </div>
+                    </div>
+                    <div class="bui-scroll-foot"></div>
+                </div>
+           </div>
+        </main>
+
+        
+   
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/vue.js"></script> 
+<script src="./js/bui.js"></script>
+<script src="./js/md5-min.js"></script>
+<script src="./js/common.js"></script> 
+<script src="./js/jquery.qrcode.min.js"></script> 
+
+<script type="text/javascript">
+ 
+    init()
+    function init(){
+        var loading = bui.loading()
+        bui.ready(function(){
+            // 快速初始化 1.5.2 新增 data参数 动态渲染
+            var _vue = new Vue({
+                el: '#app',
+                data: {
+                    dataList:[],
+                    uiScroll:'',
+                },
+
+                mounted() {
+                    this.init_buiScroll()
+                },
+                methods: {
+                    init_buiScroll() {
+                        var _this = this;
+                        _this.uiScroll = bui.scroll({
+                            id: "#scroll",
+                            children: ".bui-list",//循环遍历的数据的父层,如果不对,会出现无限滚动的情况
+                            page: 1,
+                            pageSize: 15,
+                            onRefresh: _this.refresh,
+                            onLoad: _this.getDataList,
+                        });
+                    },
+                   
+                    getDataList(page,pagesize,is_refresh) {
+                        var _this = this;
+                        var params = {
+                            page: page,
+                            rows: pagesize,
+                            asset_type:"1"
+                        }
+                        loading.show();
+                        $cs.ajax('Member/tradingDetailList',params, function (ret) {
+                            loading.hide();
+                            if (ret.success) {
+                                var data = ret.data.list;
+                                if(is_refresh){
+                                    _this.dataList = [];
+                                }
+                                if(data.length > 0){
+                                    _this.dataList = _this.dataList.concat(data);
+                                }
+                               
+                                _this.uiScroll.updatePage(page++, data);
+                                _this.uiScroll.reverse();
+                            } else {
+                                $cs.msg(ret.message )
+                            }
+                        });
+                    },
+                    refresh () {
+                        page = 1;
+                        pagesize = 15;
+                        this.getDataList(page,pagesize,true);
+                    },
+                
+                
+                },
+                
+            });
+        })
+    }
+                
+    
+
+        
+
+        
+
+
+</script>
+</body>
+</html>
